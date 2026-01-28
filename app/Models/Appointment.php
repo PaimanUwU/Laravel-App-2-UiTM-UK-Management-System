@@ -10,7 +10,7 @@ class Appointment extends Model
   use HasFactory;
 
   protected $table = 'appointments';
-  protected $primaryKey = 'appt_ID';
+  protected $primaryKey = 'appt_id';
 
   protected $fillable = [
     'appt_date',
@@ -18,17 +18,17 @@ class Appointment extends Model
     'appt_status',
     'appt_payment',
     'appt_note',
-    'patient_ID',
-    'doctor_ID',
+    'patient_id',
+    'doctor_id',
   ];
 
   public function patient()
   {
-    return $this->belongsTo(Patient::class, 'patient_ID');
+    return $this->belongsTo(Patient::class, 'patient_id');
   }
 
   public function doctor()
   {
-    return $this->belongsTo(Doctor::class, 'doctor_ID');
+    return $this->belongsTo(Doctor::class, 'doctor_id');
   }
 }

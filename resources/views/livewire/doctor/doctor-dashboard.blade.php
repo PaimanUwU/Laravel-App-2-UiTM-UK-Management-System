@@ -22,14 +22,14 @@ new class extends Component {
         $newStatus = $this->doctor->status === 'ACTIVE' ? 'BREAK' : 'ACTIVE';
         $this->doctor->update(['status' => $newStatus]);
 
-        \Flux::toast("Status updated to {$newStatus}");
+        flux()->toast("Status updated to {$newStatus}");
     }
 
     public function with(): array
     {
         return [
             'queue' => Appointment::with('patient')
-                ->where('doctor_ID', $this->doctor->doctor_ID)
+                ->where('doctor_id', $this->doctor->doctor_id)
                 ->where('appt_date', now()->format('Y-m-d'))
                 ->whereIn('appt_status', ['CONFIRMED', 'ARRIVED', 'CONSULTING'])
                 ->orderBy('appt_time')
@@ -43,8 +43,8 @@ new class extends Component {
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Dr. {{ $doctor->doctor_name }}</h1>
-            <p class="text-sm text-gray-600">{{ $doctor->position->position_Name ?? 'Doctor' }} •
-                {{ $doctor->department->dept_Name ?? 'General' }}
+            <p class="text-sm text-gray-600">{{ $doctor->position->position_name ?? 'Doctor' }} •
+                {{ $doctor->department->dept_name ?? 'General' }}
             </p>
         </div>
 
@@ -82,15 +82,15 @@ new class extends Component {
                                 <div class="font-mono font-bold text-gray-600">{{ $appt->appt_time }}</div>
                                 <div>
                                     <div class="font-semibold">{{ $appt->patient->patient_name }}</div>
-                                    <div class="text-xs text-gray-600">Ticket #{{ $appt->appt_ID }}</div>
+                                    <div class="text-xs text-gray-600">Ticket #{{ $appt->appt_id }}</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
                                 @if($appt->appt_status === 'CONSULTING')
                                     <flux:button size="sm" variant="primary"
-                                        href="{{ route('consultation.wizard', $appt->appt_ID) }}">Continue</flux:button>
+                                        href="{{ route('consultation.wizard', $appt->appt_id) }}">Continue</flux:button>
                                 @else
-                                    <flux:button size="sm" href="{{ route('consultation.wizard', $appt->appt_ID) }}">Start
+                                    <flux:button size="sm" href="{{ route('consultation.wizard', $appt->appt_id) }}">Start
                                     </flux:button>
                                 @endif
                             </div>

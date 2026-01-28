@@ -10,11 +10,11 @@ class Vaccination extends Model
   use HasFactory;
 
   protected $table = 'vaccinations';
-  protected $primaryKey = 'appt_ID';
+  protected $primaryKey = 'appt_id';
   public $incrementing = false;
 
   protected $fillable = [
-    'appt_ID',
+    'appt_id',
     'vacc_for',
     'vacc_exp_date',
     'vacc_desc',
@@ -22,6 +22,6 @@ class Vaccination extends Model
 
   public function appointment()
   {
-    return $this->belongsTo(Appointment::class, 'appt_ID');
+    return $this->belongsTo(Appointment::class, 'appt_id');
   }
 }

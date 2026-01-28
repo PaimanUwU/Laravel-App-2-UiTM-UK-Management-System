@@ -31,7 +31,7 @@ new class extends Component {
         $this->appointment = $appointment;
 
         // Load existing data
-        $checkup = MedicalCheckup::find($appointment->appt_ID);
+        $checkup = MedicalCheckup::find($appointment->appt_id);
         if ($checkup) {
             $this->symptoms = $checkup->checkup_symptom;
             $this->diagnosis = $checkup->checkup_test; // Mapping test to diagnosis/notes
@@ -40,21 +40,21 @@ new class extends Component {
 
         $this->loadPrescriptions();
 
-        $mc = MedicalCertificate::where('appt_ID', $appointment->appt_ID)->first();
+        $mc = MedicalCertificate::where('appt_id', $appointment->appt_id)->first();
         if ($mc) {
-            $this->mc_start_date = $mc->MC_date_start;
-            $this->mc_days = \Carbon\Carbon::parse($mc->MC_date_start)->diffInDays($mc->MC_date_end) + 1;
+            $this->mc_start_date = $mc->mc_date_start;
+            $this->mc_days = \Carbon\Carbon::parse($mc->mc_date_start)->diffInDays($mc->mc_date_end) + 1;
         }
     }
 
     public function loadPrescriptions()
     {
         $this->prescriptions = PrescribedMed::with('medication')
-            ->where('appt_ID', $this->appointment->appt_ID)
+            ->where('appt_id', $this->appointment->appt_id)
             ->get()
             ->map(fn($p) => [
-                'id' => $p->prescribe_ID,
-                'meds_ID' => $p->meds_ID,
+                'id' => $p->prescribe_id,
+                'meds_id' => $p->meds_id,
                 'name' => $p->medication->meds_name ?? 'Unknown',
                 'amount' => $p->amount,
                 'dosage' => $p->dosage,
@@ -65,7 +65,7 @@ new class extends Component {
     public function saveVitals()
     {
         MedicalCheckup::updateOrCreate(
-            ['appt_ID' => $this->appointment->appt_ID],
+            ['appt_id' => $this->appointment->appt_id],
             [
                 'checkup_symptom' => $this->symptoms,
                 'checkup_test' => $this->diagnosis,
@@ -90,17 +90,17 @@ new class extends Component {
 
             // Log movement
             StockMovement::create([
-                'meds_ID' => $med->meds_ID,
+                'meds_id' => $med->meds_id,
                 'quantity' => $amount,
                 'type' => 'OUT',
-                'reason' => 'Prescription for Appt #' . $this->appointment->appt_ID,
+                'reason' => 'Prescription for Appt #' . $this->appointment->appt_id,
                 'user_id' => auth()->id(),
             ]);
 
             // Create prescription record
             PrescribedMed::create([
-                'appt_ID' => $this->appointment->appt_ID,
-                'meds_ID' => $med->meds_ID,
+                'appt_id' => $this->appointment->appt_id,
+                'meds_id' => $med->meds_id,
                 'amount' => $amount,
                 'dosage' => $dosage,
             ]);
@@ -108,7 +108,7 @@ new class extends Component {
 
         $this->loadPrescriptions();
         $this->reset(['med_search']);
-        \Flux::toast('Medication added.');
+        flux()->toast('Medication added.');
     }
 
     public function removeMedication($prescribe_ID)
@@ -117,15 +117,15 @@ new class extends Component {
         if ($pres) {
             DB::transaction(function () use ($pres) {
                 // Return stock
-                $med = Medication::find($pres->meds_ID);
+                $med = Medication::find($pres->meds_id);
                 $med->increment('stock_quantity', $pres->amount);
 
                 // Log movement
                 StockMovement::create([
-                    'meds_ID' => $pres->meds_ID,
+                    'meds_id' => $pres->meds_id,
                     'quantity' => $pres->amount,
                     'type' => 'IN',
-                    'reason' => 'Prescription Cancelled Appt #' . $this->appointment->appt_ID,
+                    'reason' => 'Prescription Cancelled Appt #' . $this->appointment->appt_id,
                     'user_id' => auth()->id(),
                 ]);
 
@@ -140,10 +140,10 @@ new class extends Component {
     {
         if ($this->mc_start_date && $this->mc_days > 0) {
             MedicalCertificate::updateOrCreate(
-                ['appt_ID' => $this->appointment->appt_ID],
+                ['appt_id' => $this->appointment->appt_id],
                 [
-                    'MC_date_start' => $this->mc_start_date,
-                    'MC_date_end' => \Carbon\Carbon::parse($this->mc_start_date)->addDays($this->mc_days - 1),
+                    'mc_date_start' => $this->mc_start_date,
+                    'mc_date_end' => \Carbon\Carbon::parse($this->mc_start_date)->addDays($this->mc_days - 1),
                 ]
             );
         }
@@ -174,7 +174,7 @@ new class extends Component {
             <h1 class="text-2xl font-bold text-gray-900">Consultation Room</h1>
             <p class="text-sm text-gray-600">
                 Patient: <span class="font-semibold">{{ $appointment->patient->patient_name }}</span> |
-                Ticket: #{{ $appointment->appt_ID }}
+                Ticket: #{{ $appointment->appt_id }}
             </p>
         </div>
         <div class="flex gap-2">
@@ -225,7 +225,7 @@ new class extends Component {
                             <div class="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1">
                                 @foreach($medSearch as $m)
                                     <div class="p-2 hover:bg-gray-100 cursor-pointer flex justify-between"
-                                        wire:click="addMedication({{ $m->meds_ID }}, amount, dosage)">
+                                        wire:click="addMedication({{ $m->meds_id }}, amount, dosage)">
                                         <span>{{ $m->meds_name }}</span>
                                         <span class="text-xs text-gray-600">Stock: {{ $m->stock_quantity }}</span>
                                     </div>

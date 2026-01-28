@@ -4,8 +4,7 @@ use Livewire\Volt\Component;
 use App\Models\Medication;
 use Livewire\WithPagination;
 
-new class extends Component
-{
+new class extends Component {
     use WithPagination;
 
     public $search = '';
@@ -27,11 +26,11 @@ new class extends Component
 
         if ($this->search) {
             $query->where('meds_name', 'like', '%' . $this->search . '%')
-                  ->orWhere('meds_type', 'like', '%' . $this->search . '%');
+                ->orWhere('meds_type', 'like', '%' . $this->search . '%');
         }
 
         return [
-            'medications' => $query->latest('meds_ID')->paginate(10),
+            'medications' => $query->latest('meds_id')->paginate(10),
         ];
     }
 };
@@ -50,48 +49,69 @@ new class extends Component
         </div>
     </div>
 
-    <div class="flex gap-4">
+    <div class="flex gap-4 mb-6">
         <div class="flex-1">
             <flux:input wire:model.live="search" placeholder="Search medications..." icon="magnifying-glass" />
         </div>
     </div>
 
-    <flux:card class="overflow-hidden">
-        <flux:table :paginate="$medications">
-            <flux:table.columns>
-                <flux:table.column>Name</flux:table.column>
-                <flux:table.column>Type</flux:table.column>
-                <flux:table.column>Stock Level</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column align="end">Actions</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
+    <div class="px-4 bg-white overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="py-4 pl-12 pr-3 text-left text-sm font-semibold text-gray-900">Name
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Stock Level</th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                    <th scope="col" class="relative py-4 pl-3 pr-12">
+                        <span class="sr-only">Actions</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
                 @foreach ($medications as $med)
-                    <flux:table.row :key="$med->meds_ID">
-                        <flux:table.cell class="font-medium">{{ $med->meds_name }}</flux:table.cell>
-                        <flux:table.cell>{{ $med->meds_type }}</flux:table.cell>
-                        <flux:table.cell>{{ $med->stock_quantity }} {{ $med->meds_type ?? 'units' }}</flux:table.cell>
-                        <flux:table.cell>
+                    <tr>
+                        <td class="whitespace-nowrap py-4 pl-12 pr-3 text-sm font-medium text-gray-900">
+                            {{ $med->meds_name }}
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $med->meds_type }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $med->stock_quantity }}
+                            {{ $med->meds_type ?? 'units' }}
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                             @if($med->stock_quantity <= 0)
-                                <flux:badge color="red" size="sm">Out of Stock</flux:badge>
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                    Out of Stock
+                                </span>
                             @elseif($med->stock_quantity <= $med->min_threshold)
-                                <flux:badge color="orange" size="sm">Low Stock</flux:badge>
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                    Low Stock
+                                </span>
                             @else
-                                <flux:badge color="green" size="sm">Healthy</flux:badge>
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                    Healthy
+                                </span>
                             @endif
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button variant="ghost" size="sm" icon="plus-circle" tooltip="Adjust Stock" 
-                                x-on:click="$dispatch('setAdjustmentMed', { id: {{ $med->meds_ID }} }); $dispatch('open-modal', 'adjust-stock')" />
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" 
-                                x-on:click="$dispatch('setEditMed', { id: {{ $med->meds_ID }} }); $dispatch('open-modal', 'edit-medication')" />
-                        </flux:table.cell>
-                    </flux:table.row>
+                        </td>
+                        <td class="relative whitespace-nowrap py-4 pl-3 pr-12 text-right text-sm font-medium">
+                            <flux:button variant="ghost" size="sm" icon="plus-circle" tooltip="Adjust Stock"
+                                x-on:click="$dispatch('setAdjustmentMed', { id: {{ $med->meds_id }} }); $dispatch('open-modal', 'adjust-stock')" />
+                            <flux:button variant="ghost" size="sm" icon="pencil-square"
+                                x-on:click="$dispatch('setEditMed', { id: {{ $med->meds_id }} }); $dispatch('open-modal', 'edit-medication')" />
+                        </td>
+                    </tr>
                 @endforeach
-            </flux:table.rows>
-        </flux:table>
-    </flux:card>
+            </tbody>
+        </table>
+
+        <div class="px-4 py-3 border-t border-gray-200 bg-gray-50 sm:px-6">
+            {{ $medications->links() }}
+        </div>
+    </div>
 
     <livewire:inventory.stock-adjustment />
     <livewire:inventory.medication-form />

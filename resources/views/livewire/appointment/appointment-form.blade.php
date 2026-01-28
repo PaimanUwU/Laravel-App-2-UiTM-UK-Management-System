@@ -9,8 +9,8 @@ use Illuminate\Validation\Rule;
 new class extends Component {
     public ?Appointment $appointment = null;
 
-    public $patient_ID = '';
-    public $doctor_ID = '';
+    public $patient_id = '';
+    public $doctor_id = '';
     public $date = '';
     public $time = '';
     public $status = 'PENDING';
@@ -20,8 +20,8 @@ new class extends Component {
     {
         if ($appointment && $appointment->exists) {
             $this->appointment = $appointment;
-            $this->patient_ID = $appointment->patient_ID;
-            $this->doctor_ID = $appointment->doctor_ID;
+            $this->patient_id = $appointment->patient_id;
+            $this->doctor_id = $appointment->doctor_id;
             $this->date = $appointment->appt_date;
             $this->time = $appointment->appt_time;
             $this->status = $appointment->appt_status;
@@ -34,8 +34,8 @@ new class extends Component {
     public function save()
     {
         $this->validate([
-            'patient_ID' => 'required|exists:patients,patient_ID',
-            'doctor_ID' => 'required|exists:doctors,doctor_ID',
+            'patient_id' => 'required|exists:patients,patient_id',
+            'doctor_id' => 'required|exists:doctors,doctor_id',
             'date' => 'required|date|after_or_equal:today',
             'time' => 'required',
             'status' => 'required|string',
@@ -43,11 +43,11 @@ new class extends Component {
         ]);
 
         // Simple conflict check
-        $exists = Appointment::where('doctor_ID', $this->doctor_ID)
+        $exists = Appointment::where('doctor_id', $this->doctor_id)
             ->where('appt_date', $this->date)
             ->where('appt_time', $this->time)
             ->when($this->appointment, function ($q) {
-                return $q->where('appt_ID', '!=', $this->appointment->appt_ID);
+                return $q->where('appt_id', '!=', $this->appointment->appt_id);
             })
             ->exists();
 
@@ -57,8 +57,8 @@ new class extends Component {
         }
 
         $data = [
-            'patient_ID' => $this->patient_ID,
-            'doctor_ID' => $this->doctor_ID,
+            'patient_id' => $this->patient_id,
+            'doctor_id' => $this->doctor_id,
             'appt_date' => $this->date,
             'appt_time' => $this->time,
             'appt_status' => $this->status,
@@ -68,11 +68,11 @@ new class extends Component {
         if ($this->appointment) {
             $this->appointment->update($data);
             $action = 'update_appointment';
-            $description = "Updated appointment for Patient ID: {$this->patient_ID}";
+            $description = "Updated appointment for Patient ID: {$this->patient_id}";
         } else {
             Appointment::create($data);
             $action = 'create_appointment';
-            $description = "Booked appointment for Patient ID: {$this->patient_ID}";
+            $description = "Booked appointment for Patient ID: {$this->patient_id}";
         }
 
         // Log action
@@ -110,16 +110,16 @@ new class extends Component {
     <flux:card>
         <form wire:submit="save" class="space-y-6">
 
-            <flux:select wire:model="patient_ID" label="Patient" placeholder="Select Patient" searchable>
+            <flux:select wire:model="patient_id" label="Patient" placeholder="Select Patient" searchable>
                 @foreach($patients as $p)
-                    <flux:select.option value="{{ $p->patient_ID }}">{{ $p->patient_name }} ({{ $p->ic_number }})
+                    <flux:select.option value="{{ $p->patient_id }}">{{ $p->patient_name }} ({{ $p->ic_number }})
                     </flux:select.option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model="doctor_ID" label="Doctor" placeholder="Select Doctor">
+            <flux:select wire:model="doctor_id" label="Doctor" placeholder="Select Doctor">
                 @foreach($doctors as $d)
-                    <flux:select.option value="{{ $d->doctor_ID }}">{{ $d->doctor_name }}</flux:select.option>
+                    <flux:select.option value="{{ $d->doctor_id }}">{{ $d->doctor_name }}</flux:select.option>
                 @endforeach
             </flux:select>
 
@@ -146,7 +146,8 @@ new class extends Component {
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <flux:button href="{{ route('appointments.index') }}" variant="ghost">Cancel</flux:button>
                 <flux:button type="submit" variant="primary">
-                    {{ $appointment ? 'Update Appointment' : 'Confirm Booking' }}</flux:button>
+                    {{ $appointment ? 'Update Appointment' : 'Confirm Booking' }}
+                </flux:button>
             </div>
         </form>
     </flux:card>

@@ -6,7 +6,7 @@ use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
 
 new class extends Component {
-    public $meds_ID;
+    public $meds_id;
     public $quantity = 0;
     public $type = 'IN';
     public $reason = '';
@@ -14,24 +14,24 @@ new class extends Component {
     #[\Livewire\Attributes\On('setAdjustmentMed')]
     public function setMed($id)
     {
-        $this->meds_ID = $id;
+        $this->meds_id = $id;
     }
 
     public function adjust()
     {
         $this->validate([
-            'meds_ID' => 'required|exists:medications,meds_ID',
+            'meds_id' => 'required|exists:medications,meds_id',
             'quantity' => 'required|integer|min:1',
             'type' => 'required|in:IN,OUT',
             'reason' => 'required|string|max:255',
         ]);
 
         DB::transaction(function () {
-            $med = Medication::find($this->meds_ID);
+            $med = Medication::find($this->meds_id);
 
             // Create movement
             StockMovement::create([
-                'meds_ID' => $this->meds_ID,
+                'meds_id' => $this->meds_id,
                 'quantity' => $this->quantity,
                 'type' => $this->type,
                 'reason' => $this->reason,
@@ -58,7 +58,7 @@ new class extends Component {
         $this->reset(['quantity', 'reason']);
         $this->dispatch('close-modal', 'adjust-stock');
         $this->dispatch('medication-updated');
-        \Flux::toast('Stock adjusted successfully.');
+        flux()->toast('Stock adjusted successfully.');
     }
 };
 ?>

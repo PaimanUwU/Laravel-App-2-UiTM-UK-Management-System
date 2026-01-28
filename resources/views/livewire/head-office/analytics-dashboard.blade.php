@@ -36,9 +36,9 @@ new class extends Component {
         }
 
         // Top Meds
-        $topMeds = PrescribedMed::select('meds_ID', \DB::raw('count(*) as total'))
+        $topMeds = PrescribedMed::select('meds_id', \DB::raw('count(*) as total'))
             ->with('medication')
-            ->groupBy('meds_ID')
+            ->groupBy('meds_id')
             ->orderByDesc('total')
             ->take(5)
             ->get();
@@ -53,7 +53,7 @@ new class extends Component {
     public function downloadReport()
     {
         // CSV Export Logic Placeholder
-        \Flux::toast('Report download started...');
+        flux()->toast('Report download started...');
     }
 };
 ?>

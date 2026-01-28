@@ -58,9 +58,9 @@
                 @endauth
             </header>
 
-            <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+            <main class="flex-1 overflow-y-auto p-4 lg:p-8 ">
                 @isset($header)
-                    <div class="mb-6">
+                    <div class="mb-8">
                         {{ $header }}
                     </div>
                 @endisset

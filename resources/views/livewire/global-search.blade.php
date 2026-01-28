@@ -26,7 +26,7 @@ new class extends Component {
         $doctors = Doctor::where('doctor_name', 'like', "%{$this->search}%")
             ->take(5)
             ->get()
-            ->map(fn($d) => ['type' => 'Doctor', 'title' => $d->doctor_name, 'sub' => 'ID: ' . $d->doctor_ID, 'route' => '#']);
+            ->map(fn($d) => ['type' => 'Doctor', 'title' => $d->doctor_name, 'sub' => 'ID: ' . $d->doctor_id, 'route' => '#']);
 
         $meds = Medication::where('meds_name', 'like', "%{$this->search}%")
             ->take(5)

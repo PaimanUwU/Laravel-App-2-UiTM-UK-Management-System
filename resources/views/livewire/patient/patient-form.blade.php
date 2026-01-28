@@ -30,8 +30,8 @@ new class extends Component {
             $this->student_id = $patient->student_id;
             $this->email = $patient->patient_email;
             $this->gender = $patient->patient_gender;
-            $this->date_of_birth = $patient->patient_DOB;
-            $this->phone = $patient->patient_HP;
+            $this->date_of_birth = $patient->patient_dob;
+            $this->phone = $patient->patient_hp;
             $this->address = $patient->address;
             $this->type = $patient->patient_type ?? 'STUDENT';
         }
@@ -41,7 +41,7 @@ new class extends Component {
     {
         $validated = $this->validate([
             'name' => 'required|string|max:255',
-            'ic_number' => ['required', 'string', 'max:20', Rule::unique('patients')->ignore($this->patient?->patient_ID, 'patient_ID')],
+            'ic_number' => ['required', 'string', 'max:20', Rule::unique('patients')->ignore($this->patient?->patient_id, 'patient_id')],
             'student_id' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'gender' => 'required|in:M,F',
@@ -58,8 +58,8 @@ new class extends Component {
                 'student_id' => $this->student_id,
                 'patient_email' => $this->email,
                 'patient_gender' => $this->gender,
-                'patient_DOB' => $this->date_of_birth,
-                'patient_HP' => $this->phone,
+                'patient_dob' => $this->date_of_birth,
+                'patient_hp' => $this->phone,
                 'address' => $this->address,
                 'patient_type' => $this->type,
             ]);
@@ -82,8 +82,8 @@ new class extends Component {
                 'student_id' => $this->student_id,
                 'patient_email' => $this->email,
                 'patient_gender' => $this->gender,
-                'patient_DOB' => $this->date_of_birth,
-                'patient_HP' => $this->phone,
+                'patient_dob' => $this->date_of_birth,
+                'patient_hp' => $this->phone,
                 'address' => $this->address,
                 'patient_type' => $this->type,
             ]);

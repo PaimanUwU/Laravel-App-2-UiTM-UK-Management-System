@@ -35,7 +35,7 @@ new class extends Component {
                 </div>
             </div>
             <flux:button variant="primary" icon="pencil-square"
-                href="{{ route('patients.edit', $patient->patient_ID) }}">
+                href="{{ route('patients.edit', $patient->patient_id) }}">
                 Edit Profile
             </flux:button>
         </div>
@@ -86,7 +86,7 @@ new class extends Component {
                         </div>
                         <div>
                             <span class="text-gray-600 block">Phone</span>
-                            <span class="font-medium">{{ $patient->patient_HP }}</span>
+                            <span class="font-medium">{{ $patient->patient_hp }}</span>
                         </div>
                         <div>
                             <span class="text-gray-600 block">Gender</span>
@@ -95,7 +95,7 @@ new class extends Component {
                         <div>
                             <span class="text-gray-600 block">Date of Birth</span>
                             <span
-                                class="font-medium">{{ \Carbon\Carbon::parse($patient->patient_DOB)->format('d M Y') }}</span>
+                                class="font-medium">{{ \Carbon\Carbon::parse($patient->patient_dob)->format('d M Y') }}</span>
                         </div>
                         <div class="col-span-2">
                             <span class="text-gray-600 block">Address</span>

@@ -70,7 +70,7 @@ new class extends Component {
         </flux:button>
     </div>
 
-    <div class="flex flex-col md:flex-row gap-4">
+    <div class="flex flex-col md:flex-row gap-4 mb-6">
         <div class="flex-1">
             <flux:input wire:model.live="search" placeholder="Search by name or email..." icon="magnifying-glass" />
         </div>
@@ -85,38 +85,51 @@ new class extends Component {
         </div>
     </div>
 
-    <flux:card class="overflow-hidden">
-        <flux:table :paginate="$users">
-            <flux:table.columns>
-                <flux:table.column>Name</flux:table.column>
-                <flux:table.column>Email</flux:table.column>
-                <flux:table.column>Role</flux:table.column>
-                <flux:table.column>Joined</flux:table.column>
-                <flux:table.column align="end">Actions</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
+    <div class="px-4 bg-white overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="py-4 pl-12 pr-3 text-left text-sm font-semibold text-gray-900">Name
+                    </th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Email</th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Role</th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Joined</th>
+                    <th scope="col" class="relative py-4 pl-3 pr-12">
+                        <span class="sr-only">Actions</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
                 @foreach ($users as $user)
-                    <flux:table.row :key="$user->id">
-                        <flux:table.cell class="font-medium">{{ $user->name }}</flux:table.cell>
-                        <flux:table.cell>{{ $user->email }}</flux:table.cell>
-                        <flux:table.cell>
+                    <tr>
+                        <td class="whitespace-nowrap py-4 pl-12 pr-3 text-sm font-medium text-gray-900">
+                            {{ $user->name }}
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $user->email }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                             @foreach($user->roles as $role)
-                                <flux:badge color="teal" size="sm" class="mr-1">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-800 mr-1">
                                     {{ ucwords(str_replace('_', ' ', $role->name)) }}
-                                </flux:badge>
+                                </span>
                             @endforeach
-                        </flux:table.cell>
-                        <flux:table.cell>{{ $user->created_at->format('M d, Y') }}</flux:table.cell>
-                        <flux:table.cell align="end">
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
+                            {{ $user->created_at->format('M d, Y') }}
+                        </td>
+                        <td class="relative whitespace-nowrap py-4 pl-3 pr-12 text-right text-sm font-medium">
                             <flux:button variant="ghost" size="sm" icon="pencil-square"
                                 href="{{ route('admin.users.edit', $user) }}" />
                             <flux:button variant="ghost" size="sm" icon="trash" wire:click="deleteUser({{ $user->id }})"
                                 wire:confirm="Are you sure you want to delete this user?" />
-                        </flux:table.cell>
-                    </flux:table.row>
+                        </td>
+                    </tr>
                 @endforeach
-            </flux:table.rows>
-        </flux:table>
-    </flux:card>
+            </tbody>
+        </table>
+
+        <div class="px-4 py-3 border-t border-gray-200 bg-gray-50 sm:px-6">
+            {{ $users->links() }}
+        </div>
+    </div>
 </div>

@@ -10,22 +10,22 @@ class PrescribedMed extends Model
   use HasFactory;
 
   protected $table = 'prescribed_meds';
-  protected $primaryKey = 'prescribe_ID';
+  protected $primaryKey = 'prescribe_id';
 
   protected $fillable = [
     'amount',
     'dosage',
-    'appt_ID',
-    'meds_ID',
+    'appt_id',
+    'meds_id',
   ];
 
   public function appointment()
   {
-    return $this->belongsTo(Appointment::class, 'appt_ID');
+    return $this->belongsTo(Appointment::class, 'appt_id');
   }
 
   public function medication()
   {
-    return $this->belongsTo(Medication::class, 'meds_ID');
+    return $this->belongsTo(Medication::class, 'meds_id');
   }
 }

@@ -18,12 +18,12 @@ new class extends Component {
 
     public function with(): array
     {
-        $supervisees = Doctor::where('supervisor_ID', $this->supervisor->doctor_ID)->pluck('doctor_ID');
+        $supervisees = Doctor::where('supervisor_id', $this->supervisor->doctor_id)->pluck('doctor_id');
 
         return [
-            'supervisees' => Doctor::whereIn('doctor_ID', $supervisees)->get(),
+            'supervisees' => Doctor::whereIn('doctor_id', $supervisees)->get(),
             'recentConsultations' => Appointment::with(['doctor', 'patient'])
-                ->whereIn('doctor_ID', $supervisees)
+                ->whereIn('doctor_id', $supervisees)
                 ->whereIn('appt_status', ['COMPLETED', 'CONSULTING'])
                 ->latest('updated_at')
                 ->take(10)
@@ -51,7 +51,7 @@ new class extends Component {
                                 src="https://ui-avatars.com/api/?name={{ urlencode($doc->doctor_name) }}&color=7F9CF5&background=EBF4FF" />
                             <div>
                                 <div class="font-medium">Dr. {{ $doc->doctor_name }}</div>
-                                <div class="text-xs text-gray-600">{{ $doc->position->position_Name ?? 'Doctor' }}</div>
+                                <div class="text-xs text-gray-600">{{ $doc->position->position_name ?? 'Doctor' }}</div>
                             </div>
                         </div>
                         <flux:badge color="{{ $doc->status === 'ACTIVE' ? 'green' : 'orange' }}">

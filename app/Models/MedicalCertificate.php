@@ -10,17 +10,17 @@ class MedicalCertificate extends Model
   use HasFactory;
 
   protected $table = 'medical_certificates';
-  protected $primaryKey = 'MC_ID';
+  protected $primaryKey = 'mc_id';
 
   protected $fillable = [
-    'MC_ID',
-    'MC_date_start',
-    'MC_date_end',
-    'appt_ID',
+    'mc_id',
+    'mc_date_start',
+    'mc_date_end',
+    'appt_id',
   ];
 
   public function appointment()
   {
-    return $this->belongsTo(Appointment::class, 'appt_ID');
+    return $this->belongsTo(Appointment::class, 'appt_id');
   }
 }

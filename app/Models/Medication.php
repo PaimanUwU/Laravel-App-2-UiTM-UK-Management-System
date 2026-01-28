@@ -10,7 +10,7 @@ class Medication extends Model
   use HasFactory;
 
   protected $table = 'medications';
-  protected $primaryKey = 'meds_ID';
+  protected $primaryKey = 'meds_id';
 
   protected $fillable = [
     'meds_name',
@@ -21,6 +21,6 @@ class Medication extends Model
 
   public function stockMovements()
   {
-    return $this->hasMany(StockMovement::class, 'meds_ID', 'meds_ID');
+    return $this->hasMany(StockMovement::class, 'meds_id', 'meds_id');
   }
 }

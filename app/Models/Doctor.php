@@ -10,32 +10,37 @@ class Doctor extends Model
   use HasFactory;
 
   protected $table = 'doctors';
-  protected $primaryKey = 'doctor_ID';
+  protected $primaryKey = 'doctor_id';
 
   protected $fillable = [
     'doctor_name',
     'doctor_gender',
-    'doctor_DOB',
-    'doctor_HP',
+    'doctor_dob',
+    'doctor_hp',
     'doctor_email',
-    'position_ID',
-    'dept_ID',
-    'supervisor_ID',
+    'position_id',
+    'dept_id',
+    'supervisor_id',
     'status',
   ];
 
   public function position()
   {
-    return $this->belongsTo(Position::class, 'position_ID');
+    return $this->belongsTo(Position::class, 'position_id');
   }
 
   public function department()
   {
-    return $this->belongsTo(Department::class, 'dept_ID');
+    return $this->belongsTo(Department::class, 'dept_id');
   }
 
   public function supervisor()
   {
-    return $this->belongsTo(Doctor::class, 'supervisor_ID', 'doctor_ID');
+    return $this->belongsTo(Doctor::class, 'supervisor_id', 'doctor_id');
+  }
+
+  public function user()
+  {
+    return $this->belongsTo(User::class, 'user_id');
   }
 }
