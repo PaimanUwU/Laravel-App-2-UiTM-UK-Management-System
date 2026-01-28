@@ -21,6 +21,7 @@ class Doctor extends Model
     'position_ID',
     'dept_ID',
     'supervisor_ID',
+    'status',
   ];
 
   public function position()

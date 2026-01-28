@@ -13,12 +13,24 @@ class Patient extends Model
   protected $primaryKey = 'patient_ID';
 
   protected $fillable = [
+    'user_id',
     'patient_name',
     'patient_gender',
     'patient_DOB',
     'patient_HP',
     'patient_email',
-    'patient_meds_history',
     'patient_type',
+    'patient_meds_history',
+    'student_id',
+    'ic_number',
+    'phone',
+    'address',
+    'date_of_birth',
+    'gender',
   ];
+
+  public function user()
+  {
+    return $this->belongsTo(User::class);
+  }
 }

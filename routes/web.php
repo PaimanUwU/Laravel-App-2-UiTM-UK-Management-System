@@ -15,6 +15,54 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::middleware(['auth', 'verified', 'role:system_admin'])->prefix('admin')->name('admin.')->group(function () {
+    // User Management
+    \Livewire\Volt\Volt::route('/users', 'admin.user-index')->name('users.index');
+    \Livewire\Volt\Volt::route('/users/create', 'admin.user-form')->name('users.create');
+    \Livewire\Volt\Volt::route('/users/{user}/edit', 'admin.user-form')->name('users.edit');
+    \Livewire\Volt\Volt::route('/settings', 'admin.settings-manager')->name('settings');
+    \Livewire\Volt\Volt::route('/audit-logs', 'admin.audit-log-viewer')->name('audit-logs');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Inventory - Accessible by Admin, Head Office, Staff
+    Route::middleware(['role:system_admin|head_office|staff'])->prefix('inventory')->name('inventory.')->group(function () {
+        \Livewire\Volt\Volt::route('/', 'inventory.medication-index')->name('mex.index');
+    });
+
+    // Patient Management - Accessible by Admin, Doctor, Staff
+    Route::middleware(['role:system_admin|doctor|staff'])->prefix('patients')->name('patients.')->group(function () {
+        \Livewire\Volt\Volt::route('/', 'patient.patient-index')->name('index');
+        \Livewire\Volt\Volt::route('/create', 'patient.patient-form')->name('create');
+        \Livewire\Volt\Volt::route('/{patient}', 'patient.patient-profile')->name('show');
+        \Livewire\Volt\Volt::route('/{patient}/edit', 'patient.patient-form')->name('edit');
+    });
+
+    // Appointment Management
+    Route::middleware(['role:system_admin|doctor|staff'])->prefix('appointments')->name('appointments.')->group(function () {
+        \Livewire\Volt\Volt::route('/', 'appointment.calendar')->name('index');
+        \Livewire\Volt\Volt::route('/create', 'appointment.appointment-form')->name('create');
+        \Livewire\Volt\Volt::route('/{appointment}/edit', 'appointment.appointment-form')->name('edit');
+        \Livewire\Volt\Volt::route('/queue', 'appointment.today-queue')->name('queue');
+    });
+
+    // Consultation
+    Route::middleware(['role:doctor'])->prefix('consultation')->name('consultation.')->group(function () {
+        \Livewire\Volt\Volt::route('/session/{appointment}', 'consultation.consultation-wizard')->name('wizard');
+    });
+
+    // Doctor Portal
+    Route::middleware(['role:doctor'])->prefix('doctor')->name('doctor.')->group(function () {
+        \Livewire\Volt\Volt::route('/dashboard', 'doctor.doctor-dashboard')->name('dashboard');
+        \Livewire\Volt\Volt::route('/supervisor', 'doctor.supervisor-dashboard')->name('supervisor');
+    });
+
+    // Head Office
+    Route::middleware(['role:head_office'])->prefix('ho')->name('ho.')->group(function () {
+        \Livewire\Volt\Volt::route('/analytics', 'head-office.analytics-dashboard')->name('analytics');
+    });
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

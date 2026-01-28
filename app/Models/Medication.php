@@ -15,5 +15,12 @@ class Medication extends Model
   protected $fillable = [
     'meds_name',
     'meds_type',
+    'stock_quantity',
+    'min_threshold',
   ];
+
+  public function stockMovements()
+  {
+    return $this->hasMany(StockMovement::class, 'meds_ID', 'meds_ID');
+  }
 }
