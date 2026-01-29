@@ -16,12 +16,12 @@ class DoctorFactory extends Factory
     return [
       'doctor_name' => $this->faker->name('male'),
       'doctor_gender' => $this->faker->randomElement(['M', 'F']),
-      'doctor_DOB' => $this->faker->date(),
-      'doctor_HP' => $this->faker->phoneNumber(),
+      'doctor_dob' => $this->faker->date(),
+      'doctor_hp' => $this->faker->phoneNumber(),
       'doctor_email' => $this->faker->unique()->safeEmail(),
-      'position_ID' => Position::factory(),
-      'dept_ID' => Department::factory(),
-      'supervisor_ID' => null,
+      'position_id' => Position::factory(),
+      'dept_id' => Department::factory(),
+      'supervisor_id' => null,
       'status' => $this->faker->randomElement(['Active', 'Inactive']),
     ];
   }

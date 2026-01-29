@@ -13,7 +13,7 @@ class DepartmentFactory extends Factory
   {
     return [
       'dept_name' => $this->faker->unique()->company() . ' Department',
-      'dept_HP' => $this->faker->numerify('03########'),
+      'dept_hp' => $this->faker->numerify('03########'),
       'dept_email' => $this->faker->unique()->safeEmail(),
     ];
   }

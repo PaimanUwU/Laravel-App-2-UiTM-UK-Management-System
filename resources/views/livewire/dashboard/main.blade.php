@@ -9,7 +9,48 @@ use Carbon\Carbon;
 new class extends Component {
   public function with()
   {
+    $user = auth()->user();
+    $isDoctor = $user->hasRole('doctor');
+    $doctor = $isDoctor ? $user->doctor : null;
+
+    if ($isDoctor && $doctor) {
+      $todayAppointments = Appointment::with(['patient', 'doctor'])
+        ->where('doctor_ID', $doctor->doctor_ID)
+        ->whereDate('appt_date', Carbon::today())
+        ->orderBy('appt_time')
+        ->get();
+
+      $upcomingAppointments = Appointment::with(['patient', 'doctor'])
+        ->where('doctor_ID', $doctor->doctor_ID)
+        ->whereDate('appt_date', '>', Carbon::today())
+        ->orderBy('appt_date')
+        ->orderBy('appt_time')
+        ->take(5)
+        ->get();
+
+      $totalPatients = Appointment::where('doctor_ID', $doctor->doctor_ID)
+        ->distinct('patient_ID')
+        ->count('patient_ID');
+
+      $supervisees = $doctor->supervisees()->with(['user', 'department', 'position'])->get();
+
+      return [
+        'isDoctor' => true,
+        'doctor' => $doctor,
+        'totalPatients' => $totalPatients,
+        'todayAppointmentsCount' => $todayAppointments->count(),
+        'pendingAppointmentsCount' => Appointment::where('doctor_ID', $doctor->doctor_ID)
+          ->where('appt_status', 'scheduled')
+          ->count(),
+        'todayAppointments' => $todayAppointments,
+        'upcomingAppointments' => $upcomingAppointments,
+        'supervisees' => $supervisees,
+      ];
+    }
+
+    // Default/Admin View
     return [
+      'isDoctor' => false,
       'totalPatients' => Patient::count(),
       'todayAppointmentsCount' => Appointment::whereDate('appt_date', Carbon::today())->count(),
       'pendingAppointmentsCount' => Appointment::where('appt_status', 'scheduled')->count(),
@@ -23,16 +64,30 @@ new class extends Component {
         ->orderBy('appt_time')
         ->take(5)
         ->get(),
+      'supervisees' => collect(),
     ];
   }
 }; ?>
 
 <div class="space-y-6">
+  @if($isDoctor)
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-black text-gray-900 tracking-tight">My Dashboard</h1>
+        <p class="text-gray-500 font-medium">Welcome back, Dr. {{ explode(' ', auth()->user()->name)[0] }}</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <flux:badge color="blue" variant="solid" class="uppercase tracking-widest font-bold">Doctor Account</flux:badge>
+      </div>
+    </div>
+  @endif
+
   <!-- Bento Grid Layout -->
   <div class="grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 auto-rows-[120px]">
 
     <!-- Total Patients - Medium Square (2x2) -->
-    <div class="md:col-span-3 lg:col-span-3 md:row-span-2 bg-white border border-gray-100 rounded-xl p-5 flex flex-col justify-between">
+    <div
+      class="md:col-span-3 lg:col-span-3 md:row-span-2 bg-white border border-gray-100 rounded-xl p-5 flex flex-col justify-between">
       <div class="flex items-start justify-between">
         <div class="p-3 bg-blue-50 rounded-lg text-blue-700">
           <flux:icon.users variant="solid" class="w-6 h-6" />
@@ -40,28 +95,34 @@ new class extends Component {
         <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">+12%</span>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Patients</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+          {{ $isDoctor ? 'My Patients' : 'Total Patients' }}
+        </p>
         <p class="text-4xl font-black text-gray-900">{{ $totalPatients }}</p>
         <p class="text-[10px] text-gray-400 mt-2 font-semibold">Registered in system</p>
       </div>
     </div>
 
     <!-- Today's Appointments - Small Square (1x2) -->
-    <div class="md:col-span-3 lg:col-span-2 md:row-span-2 bg-white border border-gray-100 rounded-xl p-5 flex flex-col justify-between">
+    <div
+      class="md:col-span-3 lg:col-span-2 md:row-span-2 bg-white border border-gray-100 rounded-xl p-5 flex flex-col justify-between">
       <div class="flex items-start justify-between">
         <div class="p-3 bg-emerald-50 rounded-lg text-emerald-700">
           <flux:icon.calendar variant="solid" class="w-6 h-6" />
         </div>
       </div>
       <div>
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Today</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{{ $isDoctor ? 'My Appts' : 'Today' }}
+        </p>
         <p class="text-4xl font-black text-gray-900 mb-1">{{ $todayAppointmentsCount }}</p>
-        <flux:badge color="emerald" size="sm" variant="outline" class="font-black uppercase tracking-tighter">Active</flux:badge>
+        <flux:badge color="emerald" size="sm" variant="outline" class="font-black uppercase tracking-tighter">Active
+        </flux:badge>
       </div>
     </div>
 
     <!-- Quick Actions - Wide Rectangle (4x2) -->
-    <div class="md:col-span-6 lg:col-span-4 md:row-span-2 bg-zinc-900 text-white rounded-xl overflow-hidden relative group">
+    <div
+      class="md:col-span-6 lg:col-span-4 md:row-span-2 bg-zinc-900 text-white rounded-xl overflow-hidden relative group">
       <div class="absolute inset-0 opacity-10">
         <div class="absolute -right-12 -top-12 w-48 h-48 bg-blue-500 rounded-full blur-3xl"></div>
         <div class="absolute -left-12 -bottom-12 w-48 h-48 bg-purple-500 rounded-full blur-3xl"></div>
@@ -87,7 +148,8 @@ new class extends Component {
     </div>
 
     <!-- Pending Appointments - Small Square (2x1) -->
-    <div class="md:col-span-3 lg:col-span-3 md:row-span-1 bg-white border border-gray-100 rounded-xl p-5 flex items-center justify-between">
+    <div
+      class="md:col-span-3 lg:col-span-3 md:row-span-1 bg-white border border-gray-100 rounded-xl p-5 flex items-center justify-between">
       <div>
         <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Pending</p>
         <p class="text-3xl font-black text-gray-900 leading-none">{{ $pendingAppointmentsCount }}</p>
@@ -98,7 +160,8 @@ new class extends Component {
     </div>
 
     <!-- System Status - Small Rectangle (3x1) -->
-    <div class="md:col-span-3 lg:col-span-3 md:row-span-1 bg-white border border-gray-100 rounded-xl p-5 flex items-center justify-between">
+    <div
+      class="md:col-span-3 lg:col-span-3 md:row-span-1 bg-white border border-gray-100 rounded-xl p-5 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="p-2 bg-emerald-50 rounded-lg">
           <flux:icon.shield-check variant="solid" class="w-5 h-5 text-emerald-600" />
@@ -112,12 +175,13 @@ new class extends Component {
     </div>
 
     <!-- Today's Queue - Large Panel (6x4) -->
-    <div class="md:col-span-6 lg:col-span-6 md:row-span-4 bg-white border border-gray-100 rounded-xl flex flex-col overflow-hidden">
+    <div
+      class="md:col-span-6 lg:col-span-6 md:row-span-4 bg-white border border-gray-100 rounded-xl flex flex-col overflow-hidden">
       <div class="p-5 pb-4 border-b border-gray-100">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-bold text-gray-900">Today's Queue</h2>
-            <p class="text-sm text-gray-500">Monitoring clinic flow</p>
+            <h2 class="text-lg font-bold text-gray-900">{{ $isDoctor ? 'My Queue' : "Today's Queue" }}</h2>
+            <p class="text-sm text-gray-500">{{ $isDoctor ? 'Patients waiting for you' : 'Monitoring clinic flow' }}</p>
           </div>
           <flux:button size="sm" variant="ghost" icon="arrow-path" wire:click="$refresh"
             class="text-gray-400 hover:text-gray-900" />
@@ -139,7 +203,8 @@ new class extends Component {
               <tr>
                 <th class="py-3 pl-4 pr-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Time</th>
                 <th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Patient</th>
-                <th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Status</th>
+                <th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest text-right">
+                  Status</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-50">
@@ -158,12 +223,15 @@ new class extends Component {
                   </td>
                   <td class="px-3 py-3 whitespace-nowrap">
                     <div class="flex items-center gap-2">
-                       <div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-[10px]">
+                      <div
+                        class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-[10px]">
                         {{ substr($appointment->patient->patient_name ?? 'NA', 0, 1) }}
                       </div>
                       <div class="flex flex-col">
-                        <span class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ $appointment->patient->patient_name ?? 'N/A' }}</span>
-                        <span class="text-[10px] text-gray-400 font-medium italic">Dr. {{ explode(' ', $appointment->doctor->user->name ?? $appointment->doctor->doctor_name ?? 'N/A')[0] }}</span>
+                        <span
+                          class="text-sm font-bold text-gray-900 leading-none mb-0.5">{{ $appointment->patient->patient_name ?? 'N/A' }}</span>
+                        <span class="text-[10px] text-gray-400 font-medium italic">Dr.
+                          {{ explode(' ', $appointment->doctor->user->name ?? $appointment->doctor->doctor_name ?? 'N/A')[0] }}</span>
                       </div>
                     </div>
                   </td>
@@ -183,7 +251,8 @@ new class extends Component {
     </div>
 
     <!-- Upcoming Appointments - Tall Panel (6x4) -->
-    <div class="md:col-span-6 lg:col-span-6 md:row-span-4 bg-white border border-gray-100 rounded-xl flex flex-col overflow-hidden">
+    <div
+      class="md:col-span-6 lg:col-span-6 md:row-span-4 bg-white border border-gray-100 rounded-xl flex flex-col overflow-hidden">
       <div class="p-5 pb-4 border-b border-gray-100">
         <div class="flex items-center justify-between">
           <div>
@@ -206,8 +275,7 @@ new class extends Component {
           @foreach($upcomingAppointments as $appointment)
             <div
               class="flex items-center gap-4 p-3 rounded-xl bg-gray-50/50 hover:bg-gray-100/50 transition-all cursor-pointer group border border-transparent hover:border-gray-200">
-              <div
-                class="flex-shrink-0 w-14 h-14 p-1.5 bg-zinc-900 rounded-xl text-white text-center shadow-sm">
+              <div class="flex-shrink-0 w-14 h-14 p-1.5 bg-zinc-900 rounded-xl text-white text-center shadow-sm">
                 <p class="text-[10px] font-bold uppercase leading-none text-gray-400">
                   {{ \Carbon\Carbon::parse($appointment->appt_date)->format('M') }}
                 </p>
@@ -240,4 +308,40 @@ new class extends Component {
     </div>
 
   </div>
+
+  @if($isDoctor && $supervisees->isNotEmpty())
+    <div class="pt-6 space-y-4">
+      <div class="flex items-center gap-2">
+        <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+          <flux:icon.users variant="solid" class="w-5 h-5" />
+        </div>
+        <h2 class="text-xl font-bold text-gray-900 tracking-tight">Supervisor Dashboard</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @foreach($supervisees as $supervisee)
+          <div
+            class="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between group hover:border-purple-200 transition-all hover:shadow-sm">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-11 h-11 rounded-full bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center text-purple-700 font-bold border border-purple-100">
+                {{ substr($supervisee->user->name ?? $supervisee->doctor_name, 0, 1) }}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900 leading-none mb-1">
+                  {{ $supervisee->user->name ?? $supervisee->doctor_name }}</p>
+                <div class="flex flex-col gap-0.5">
+                  <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">
+                    {{ $supervisee->position->pos_name ?? 'Medical Officer' }}</p>
+                  <p class="text-[10px] text-gray-400 italic leading-none">
+                    {{ $supervisee->department->dept_name ?? 'General Clinic' }}</p>
+                </div>
+              </div>
+            </div>
+            <flux:button size="sm" variant="ghost" icon="chevron-right" class="text-gray-300 group-hover:text-purple-600" />
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endif
 </div>

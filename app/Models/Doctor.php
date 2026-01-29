@@ -13,6 +13,7 @@ class Doctor extends Model
   protected $primaryKey = 'doctor_id';
 
   protected $fillable = [
+    'user_id',
     'doctor_name',
     'doctor_gender',
     'doctor_dob',
@@ -26,12 +27,12 @@ class Doctor extends Model
 
   public function position()
   {
-    return $this->belongsTo(Position::class, 'position_id');
+    return $this->belongsTo(Position::class, 'position_id', 'position_id');
   }
 
   public function department()
   {
-    return $this->belongsTo(Department::class, 'dept_id');
+    return $this->belongsTo(Department::class, 'dept_id', 'dept_id');
   }
 
   public function supervisor()
@@ -42,5 +43,10 @@ class Doctor extends Model
   public function user()
   {
     return $this->belongsTo(User::class, 'user_id');
+  }
+
+  public function supervisees()
+  {
+    return $this->hasMany(Doctor::class, 'supervisor_id', 'doctor_id');
   }
 }

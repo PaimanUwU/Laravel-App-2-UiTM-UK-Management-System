@@ -34,15 +34,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:system_admin|doctor|staff'])->prefix('patients')->name('patients.')->group(function () {
         \Livewire\Volt\Volt::route('/', 'patient.patient-index')->name('index');
         \Livewire\Volt\Volt::route('/create', 'patient.patient-form')->name('create');
-        \Livewire\Volt\Volt::route('/{patient}', 'patient.patient-profile')->name('show');
-        \Livewire\Volt\Volt::route('/{patient}/edit', 'patient.patient-form')->name('edit');
+        \Livewire\Volt\Volt::route('/{patient:patient_ID}', 'patient.patient-profile')->name('show');
+        \Livewire\Volt\Volt::route('/{patient:patient_ID}/edit', 'patient.patient-form')->name('edit');
     });
 
     // Appointment Management
     Route::middleware(['role:system_admin|doctor|staff'])->prefix('appointments')->name('appointments.')->group(function () {
         \Livewire\Volt\Volt::route('/', 'appointment.calendar')->name('index');
         \Livewire\Volt\Volt::route('/create', 'appointment.appointment-form')->name('create');
-        \Livewire\Volt\Volt::route('/{appointment}/edit', 'appointment.appointment-form')->name('edit');
+        \Livewire\Volt\Volt::route('/{appointment:appt_ID}/edit', 'appointment.appointment-form')->name('edit');
         \Livewire\Volt\Volt::route('/queue', 'appointment.today-queue')->name('queue');
     });
 

@@ -14,8 +14,8 @@ class PrescribedMedFactory extends Factory
   public function definition(): array
   {
     return [
-      'appt_ID' => Appointment::factory(),
-      'meds_ID' => Medication::factory(),
+      'appt_id' => Appointment::factory(),
+      'meds_id' => Medication::factory(),
       'amount' => $this->faker->numberBetween(1, 10),
       'dosage' => $this->faker->sentence(),
     ];

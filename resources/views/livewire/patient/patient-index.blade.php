@@ -93,9 +93,11 @@ new class extends Component {
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $patient->patient_hp }}</td>
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-12 text-right text-sm font-medium">
                             <flux:button variant="ghost" size="sm" icon="eye"
-                                href="{{ route('patients.show', $patient->patient_id) }}" tooltip="View Profile" />
+                                href="{{ route('patients.show', ['patient' => $patient->patient_id]) }}"
+                                tooltip="View Profile" />
                             <flux:button variant="ghost" size="sm" icon="pencil-square"
-                                href="{{ route('patients.edit', $patient->patient_id) }}" tooltip="Edit Details" />
+                                href="{{ route('patients.edit', ['patient' => $patient->patient_id]) }}"
+                                tooltip="Edit Details" />
                         </td>
                     </tr>
                 @endforeach

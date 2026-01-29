@@ -19,8 +19,8 @@ class AppointmentFactory extends Factory
       'appt_status' => $this->faker->randomElement(['Scheduled', 'Completed', 'Cancelled']),
       'appt_payment' => $this->faker->randomFloat(2, 0, 100),
       'appt_note' => $this->faker->sentence(),
-      'patient_ID' => Patient::factory(),
-      'doctor_ID' => Doctor::factory(),
+      'patient_id' => Patient::factory(),
+      'doctor_id' => Doctor::factory(),
     ];
   }
 }

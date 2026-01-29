@@ -17,9 +17,9 @@ class MedicalCertificateFactory extends Factory
     $endDate->modify('+' . $this->faker->numberBetween(1, 5) . ' days');
 
     return [
-      'MC_date_start' => $startDate->format('Y-m-d'),
-      'MC_date_end' => $endDate->format('Y-m-d'),
-      'appt_ID' => Appointment::factory(),
+      'mc_date_start' => $startDate->format('Y-m-d'),
+      'mc_date_end' => $endDate->format('Y-m-d'),
+      'appt_id' => Appointment::factory(),
     ];
   }
 }

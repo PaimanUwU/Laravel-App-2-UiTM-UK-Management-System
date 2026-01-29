@@ -13,7 +13,7 @@ class MedicalCheckupFactory extends Factory
   public function definition(): array
   {
     return [
-      'appt_ID' => Appointment::factory(),
+      'appt_id' => Appointment::factory(),
       'checkup_symptom' => $this->faker->sentence(),
       'checkup_test' => $this->faker->sentence(),
       'checkup_finding' => $this->faker->sentence(),

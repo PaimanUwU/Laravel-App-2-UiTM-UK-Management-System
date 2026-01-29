@@ -13,7 +13,7 @@ class VaccinationFactory extends Factory
   public function definition(): array
   {
     return [
-      'appt_ID' => Appointment::factory(),
+      'appt_id' => Appointment::factory(),
       'vacc_for' => $this->faker->randomElement(['Influenza', 'COVID-19', 'Hepatitis B', 'HPV']),
       'vacc_exp_date' => $this->faker->dateTimeBetween('+6 months', '+2 years')->format('Y-m-d'),
       'vacc_desc' => $this->faker->sentence(),

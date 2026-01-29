@@ -34,7 +34,7 @@ class TestSeeder extends Seeder
         $admin = User::factory()->create([
             'name' => 'System Admin',
             'email' => 'admin@uitm.edu.my',
-            'password' => bcrypt('uitmadminaccess'),
+            'password' => bcrypt('asdfasdf'),
         ]);
         $admin->assignRole('system_admin');
 
@@ -47,6 +47,16 @@ class TestSeeder extends Seeder
                 'password' => bcrypt('asdfasdf'),
             ]);
             $user->assignRole($role);
+
+            // If the role is doctor, create a linked doctor profile
+            if ($role === 'doctor') {
+                Doctor::factory()->create([
+                    'user_id' => $user->id,
+                    'doctor_name' => $user->name,
+                    'doctor_email' => $user->email,
+                    'status' => 'ACTIVE',
+                ]);
+            }
         }
 
         // ==========================================
@@ -61,13 +71,13 @@ class TestSeeder extends Seeder
         // Specific entries for testing
         $cardio = Department::create([
             "dept_name" => "Cardiology",
-            "dept_HP" => "0388889999",
+            "dept_hp" => "0388889999",
             "dept_email" => "cardio@hospital.com",
         ]);
 
         $surgery = Department::create([
             "dept_name" => "General Surgery",
-            "dept_HP" => "0377776666",
+            "dept_hp" => "0377776666",
             "dept_email" => "surgery@hospital.com",
         ]);
 
@@ -95,16 +105,16 @@ class TestSeeder extends Seeder
 
         // Generate bulk Doctors
         $doctors = Doctor::factory()->count(10)->sequence(fn($sequence) => [
-            'dept_ID' => $departments->random()->dept_ID,
-            'position_ID' => $positions->random()->position_ID,
+            'dept_id' => $departments->random()->dept_id,
+            'position_id' => $positions->random()->position_id,
         ])->create();
 
         // Specific entries for testing
         $patientAli = Patient::create([
             "patient_name" => "Ali Bin Abu",
             "patient_gender" => "M",
-            "patient_DOB" => "1995-05-15",
-            "patient_HP" => "0123456789",
+            "patient_dob" => "1995-05-15",
+            "patient_hp" => "0123456789",
             "patient_email" => "ali@student.edu",
             "patient_type" => "STUDENT",
             "patient_meds_history" => "Allergic to Peanuts",
@@ -113,20 +123,20 @@ class TestSeeder extends Seeder
         $drStrange = Doctor::create([
             "doctor_name" => "Dr. Stephen Strange",
             "doctor_gender" => "M",
-            "doctor_HP" => "0112223333",
+            "doctor_hp" => "0112223333",
             "doctor_email" => "strange@hospital.com",
-            "position_ID" => $consultant->position_ID,
-            "dept_ID" => $surgery->dept_ID,
+            "position_id" => $consultant->position_id,
+            "dept_id" => $surgery->dept_id,
         ]);
 
         $drHouse = Doctor::create([
             "doctor_name" => "Dr. Gregory House",
             "doctor_gender" => "M",
-            "doctor_HP" => "0114445555",
+            "doctor_hp" => "0114445555",
             "doctor_email" => "house@hospital.com",
-            "position_ID" => $resident->position_ID,
-            "dept_ID" => $cardio->dept_ID,
-            "supervisor_ID" => $drStrange->doctor_ID,
+            "position_id" => $resident->position_id,
+            "dept_id" => $cardio->dept_id,
+            "supervisor_id" => $drStrange->doctor_id,
         ]);
 
         // ==========================================
@@ -138,15 +148,15 @@ class TestSeeder extends Seeder
             $type = rand(1, 3);
             if ($type == 1) {
                 // Medical Checkup + Prescription + MC
-                MedicalCheckup::factory()->create(['appt_ID' => $appt->appt_ID]);
+                MedicalCheckup::factory()->create(['appt_id' => $appt->appt_id]);
                 PrescribedMed::factory()->count(rand(1, 3))->create([
-                    'appt_ID' => $appt->appt_ID,
-                    'meds_ID' => $medications->random()->meds_ID,
+                    'appt_id' => $appt->appt_id,
+                    'meds_id' => $medications->random()->meds_id,
                 ]);
-                MedicalCertificate::factory()->create(['appt_ID' => $appt->appt_ID]);
+                MedicalCertificate::factory()->create(['appt_id' => $appt->appt_id]);
             } elseif ($type == 2) {
                 // Vaccination
-                Vaccination::factory()->create(['appt_ID' => $appt->appt_ID]);
+                Vaccination::factory()->create(['appt_id' => $appt->appt_id]);
             }
             // type 3 is just a scheduled appointment with no details yet
         });
@@ -158,12 +168,12 @@ class TestSeeder extends Seeder
             "appt_status" => "Completed",
             "appt_payment" => 50.0,
             "appt_note" => "Patient complained of fever",
-            "patient_ID" => $patientAli->patient_ID,
-            "doctor_ID" => $drHouse->doctor_ID,
+            "patient_id" => $patientAli->patient_id,
+            "doctor_id" => $drHouse->doctor_id,
         ]);
 
         MedicalCheckup::create([
-            "appt_ID" => $appt1->appt_ID,
+            "appt_id" => $appt1->appt_id,
             "checkup_symptom" => "High fever, sore throat",
             "checkup_test" => "Temperature check, throat swab",
             "checkup_finding" => "Viral fever",
@@ -171,16 +181,16 @@ class TestSeeder extends Seeder
         ]);
 
         PrescribedMed::create([
-            "appt_ID" => $appt1->appt_ID,
-            "meds_ID" => $panadol->meds_ID,
+            "appt_id" => $appt1->appt_id,
+            "meds_id" => $panadol->meds_id,
             "amount" => "10 strips",
             "dosage" => "2 tablets every 6 hours",
         ]);
 
         MedicalCertificate::create([
-            "appt_ID" => $appt1->appt_ID,
-            "MC_date_start" => now()->subDays(2),
-            "MC_date_end" => now()->subDays(1),
+            "appt_id" => $appt1->appt_id,
+            "mc_date_start" => now()->subDays(2),
+            "mc_date_end" => now()->subDays(1),
         ]);
 
         echo "\n✅ [TestSeeder] Oracle Database Seeded Successfully with Extended Data!\n";
