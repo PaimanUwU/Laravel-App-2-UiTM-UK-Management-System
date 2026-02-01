@@ -85,7 +85,7 @@ new class extends Component {
         </div>
     </div>
 
-    <div class="px-4 bg-white overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+    <div class="bg-white overflow-hidden shadow sm:rounded-lg">
         <table class="min-w-full divide-y divide-gray-300">
             <thead class="bg-gray-50">
                 <tr>

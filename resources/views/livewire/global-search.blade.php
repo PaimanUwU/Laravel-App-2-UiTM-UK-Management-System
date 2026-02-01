@@ -21,7 +21,7 @@ new class extends Component {
             ->orWhere('patient_name', 'like', "%{$this->search}%")
             ->take(5)
             ->get()
-            ->map(fn($p) => ['type' => 'Patient', 'title' => $p->patient_name, 'sub' => $p->student_id ?? $p->ic_number, 'route' => '#']); // Route placeholder
+            ->map(fn($p) => ['type' => 'Patient', 'title' => $p->patient_name, 'sub' => $p->student_id ?? $p->ic_number, 'route' => route('patients.show', $p->patient_id)]);
 
         $doctors = Doctor::where('doctor_name', 'like', "%{$this->search}%")
             ->take(5)
@@ -38,36 +38,70 @@ new class extends Component {
 };
 ?>
 
-<div class="relative w-full max-w-lg">
-    <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass"
-        placeholder="Search patients, doctors, or meds..."
-        class="bg-gray-50 border-none shadow-none focus:ring-2 focus:ring-teal-500 rounded-full" />
+<div x-data @keydown.window.prevent.slash="document.getElementById('global-search-trigger').click()">
+    <flux:modal.trigger name="global-search-modal">
+        <button id="global-search-trigger" type="button"
+            class="w-full flex items-center px-3 py-2 text-sm text-zinc-500 bg-zinc-50 border border-zinc-200 rounded-lg hover:bg-zinc-100 transition-colors group">
+            <flux:icon.magnifying-glass variant="outline"
+                class="w-4 h-4 mr-2 text-zinc-400 group-hover:text-zinc-600" />
+            <span>Search...</span>
+            <kbd
+                class="ml-auto flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-sans font-medium text-zinc-400 bg-white border border-zinc-200 rounded shadow-sm group-hover:bg-zinc-50">
+                <span class="text-xs">/</span>
+            </kbd>
+        </button>
+    </flux:modal.trigger>
 
-    @if(!empty($results))
-        <div class="absolute w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-            <div class="max-h-96 overflow-y-auto">
-                @foreach($results as $result)
-                    <a href="{{ $result['route'] }}"
-                        class="flex items-center gap-4 p-4 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors">
-                        <div class="flex-shrink-0">
-                            @if($result['type'] === 'Patient')
-                                <flux:icon.user variant="outline" class="w-8 h-8 text-teal-600 bg-teal-50 p-1.5 rounded-lg" />
-                            @elseif($result['type'] === 'Doctor')
-                                <flux:icon.briefcase variant="outline" class="w-8 h-8 text-blue-600 bg-blue-50 p-1.5 rounded-lg" />
-                            @else
-                                <flux:icon.beaker variant="outline" class="w-8 h-8 text-purple-600 bg-purple-50 p-1.5 rounded-lg" />
-                            @endif
-                        </div>
-                        <div class="flex-1">
-                            <div class="text-sm font-semibold text-gray-900">{{ $result['title'] }}</div>
-                            <div class="text-xs text-gray-600">{{ $result['sub'] }}</div>
-                        </div>
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                            {{ $result['type'] }}
-                        </div>
-                    </a>
-                @endforeach
+    <flux:modal name="global-search-modal" class="md:w-[40rem] w-full">
+        <div class="space-y-4">
+            <div>
+                <flux:heading size="lg">Global Search</flux:heading>
+                <flux:subheading>Search for patients, doctors, or medications.</flux:subheading>
+            </div>
+
+            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Type to search..."
+                autofocus />
+
+            <div class="max-h-[60vh] overflow-y-auto space-y-2 p-1">
+                @if(!empty($results))
+                    @foreach($results as $result)
+                        <a href="{{ $result['route'] }}"
+                            class="flex items-center gap-4 p-3 hover:bg-zinc-50 rounded-lg border border-transparent hover:border-zinc-100 transition-colors group">
+                            <div class="flex-shrink-0">
+                                @if($result['type'] === 'Patient')
+                                    <flux:icon.user variant="outline"
+                                        class="w-8 h-8 text-accent bg-accent/10 p-1.5 rounded-lg group-hover:bg-white transition-all" />
+                                @elseif($result['type'] === 'Doctor')
+                                    <flux:icon.briefcase variant="outline"
+                                        class="w-8 h-8 text-zinc-600 bg-zinc-100 p-1.5 rounded-lg group-hover:bg-white transition-all" />
+                                @else
+                                    <flux:icon.beaker variant="outline"
+                                        class="w-8 h-8 text-zinc-600 bg-zinc-100 p-1.5 rounded-lg group-hover:bg-white transition-all" />
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm font-semibold text-zinc-900 truncate">{{ $result['title'] }}</div>
+                                <div class="text-xs text-zinc-500 truncate">{{ $result['sub'] }}</div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span
+                                    class="text-[10px] font-bold uppercase tracking-wider text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded">
+                                    {{ $result['type'] }}
+                                </span>
+                            </div>
+                        </a>
+                    @endforeach
+                @elseif(strlen($search) >= 2)
+                    <div class="flex flex-col items-center justify-center py-12 text-center text-zinc-400">
+                        <flux:icon.magnifying-glass variant="outline" class="w-12 h-12 mb-3" />
+                        <p class="text-sm">No results found for "{{ $search }}"</p>
+                    </div>
+                @else
+                    <div class="flex flex-col items-center justify-center py-12 text-center text-zinc-400">
+                        <p class="text-sm">Start typing to see results...</p>
+                    </div>
+                @endif
             </div>
         </div>
-    @endif
+    </flux:modal>
 </div>
