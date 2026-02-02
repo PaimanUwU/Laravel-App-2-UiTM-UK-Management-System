@@ -17,18 +17,25 @@ new class extends Component {
     public function with(): array
     {
         $today = now()->format('Y-m-d');
-        $startOfMonth = now()->startOfMonth()->format('Y-m-d');
-        $endOfMonth = now()->endOfMonth()->format('Y-m-d');
+        $next30Days = now()->addDays(30)->format('Y-m-d');
+
+        $user = auth()->user();
+        $doctor = $user->doctor;
+
+        $query = Appointment::with(['patient', 'doctor']);
+
+        if ($doctor) {
+            $query->where('doctor_id', $doctor->doctor_id);
+        }
 
         return [
-            'todayAppointments' => Appointment::with(['patient', 'doctor'])
+            'todayAppointments' => (clone $query)
                 ->where('appt_date', $today)
                 ->orderBy('appt_time')
                 ->get(),
             'monthAppointments' => Appointment::with(['patient', 'doctor'])
-                ->whereBetween('appt_date', [$startOfMonth, $endOfMonth])
-                ->whereBetween('appt_date', [$startOfMonth, $endOfMonth])
-                // ->where('appt_date', '!=', $today) // Include today in monthly view as well
+                ->whereBetween('appt_date', [$today, $next30Days])
+                ->whereIn('appt_status', ['PENDING', 'Pending', 'Scheduled', 'scheduled'])
                 ->orderBy('appt_date')
                 ->orderBy('appt_time')
                 ->get(),
@@ -109,18 +116,18 @@ new class extends Component {
 
     <hr class="border-gray-100" />
 
-    <!-- Monthly Appointments -->
+    <!-- Monthly Appointment Requests -->
     <section class="space-y-4 mb-4">
         <div class="flex items-center gap-2">
-            <flux:icon.calendar class="w-5 h-5 text-blue-600" />
-            <h2 class="text-lg font-bold text-gray-800">Monthly Schedule</h2>
+            <flux:icon.clock class="w-5 h-5 text-orange-600" />
+            <h2 class="text-lg font-bold text-gray-800">Appointment Requests</h2>
             <span
-                class="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{{ now()->format('F Y') }}</span>
+                class="text-xs font-medium bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Next 30 Days</span>
         </div>
 
         @if($monthAppointments->isEmpty())
             <div class="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                <p class="text-sm text-gray-500">No other appointments found for {{ now()->format('F') }}.</p>
+                <p class="text-sm text-gray-500">No pending appointment requests found for the next 30 days.</p>
             </div>
         @else
             <div class="px-4 overflow-hidden bg-white border border-gray-100 rounded-xl shadow-sm">

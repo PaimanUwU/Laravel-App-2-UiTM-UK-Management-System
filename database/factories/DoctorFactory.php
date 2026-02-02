@@ -10,27 +10,27 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class DoctorFactory extends Factory
 {
-  protected $model = Doctor::class;
+    protected $model = Doctor::class;
 
-  public function definition(): array
-  {
-    $email = $this->faker->unique()->safeEmail();
-    $name = $this->faker->name('male');
+    public function definition(): array
+    {
+        $email = $this->faker->unique()->safeEmail();
+        $name = $this->faker->name("male");
 
-    return [
-      'user_id' => User::factory()->create([
-        'email' => $email,
-        'name' => $name,
-      ])->id,
-      'doctor_name' => $name,
-      'doctor_gender' => $this->faker->randomElement(['M', 'F']),
-      'doctor_dob' => $this->faker->date(),
-      'doctor_hp' => $this->faker->phoneNumber(),
-      'doctor_email' => $email,
-      'position_id' => Position::factory(),
-      'dept_id' => Department::factory(),
-      'supervisor_id' => null,
-      'status' => $this->faker->randomElement(['Active', 'Inactive']),
-    ];
-  }
+        return [
+            "user_id" => User::factory()->create([
+                "email" => $email,
+                "name" => $name,
+            ])->id,
+            "doctor_name" => $name,
+            "doctor_gender" => $this->faker->randomElement(["M", "F"]),
+            "doctor_dob" => $this->faker->date(),
+            "doctor_hp" => $this->faker->phoneNumber(),
+            "doctor_email" => $email,
+            "position_id" => Position::factory(),
+            "dept_id" => Department::factory(),
+            "supervisor_id" => null,
+            "status" => $this->faker->randomElement(["ACTIVE", "INACTIVE"]),
+        ];
+    }
 }

@@ -7,40 +7,45 @@ use App\Models\Doctor;
 use Carbon\Carbon;
 
 new class extends Component {
-    // Helper functions
-    private function getCurrentDoctor()
-    {
-        $user = auth()->user();
-        
-        if (!$user) {
-            return null;
-        }
-        
-        // If user is admin, return null (no doctor profile)
-        if ($user->hasRole('system_admin')) {
-            return null;
-        }
-        
-        // Try to get the doctor profile
-        return $user->doctor;
-    }
-
-    private function hasDoctorProfile()
-    {
-        return $this->getCurrentDoctor() !== null;
-    }
-
-  public function confirmAppointment($apptId)
+  // Helper functions
+  private function getCurrentDoctor()
   {
+    $user = auth()->user();
+
+    if (!$user) {
+      return null;
+    }
+
+    // If user is admin, return null (no doctor profile)
+    if ($user->hasRole('system_admin')) {
+      return null;
+    }
+
+    // Try to get the doctor profile
+    return $user->doctor;
+  }
+
+  private function hasDoctorProfile()
+  {
+    return $this->getCurrentDoctor() !== null;
+  }
+
+  public function confirmAppointment(int $apptId = null)
+  {
+    if ($apptId === null) {
+      session()->flash('error', 'Invalid appointment ID');
+      return;
+    }
+
     // Check if user has doctor profile
     if (!$this->hasDoctorProfile()) {
       session()->flash('error', 'Only doctors can confirm appointments.');
       return;
     }
-    
+
     $doctor = $this->getCurrentDoctor();
     $appt = Appointment::find($apptId);
-    
+
     // Allow if assigned to me OR if unassigned (I am claiming it)
     if ($appt && ($appt->doctor_id == $doctor->doctor_id || is_null($appt->doctor_id))) {
       $appt->update([
@@ -446,7 +451,7 @@ new class extends Component {
                         {{ in_array(strtolower($activity->appt_status), ['completed']) ? 'completed' : 'is consulting' }}
                         <span class="font-bold">{{ $activity->patient->patient_name }}</span>
                       </p>
-                      <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at->diffForHumans() }}</p>
+                      <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at ? \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() : 'Unknown time' }}</p>
                     </div>
                   </div>
                 @empty
