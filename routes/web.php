@@ -30,10 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         \Livewire\Volt\Volt::route('/', 'inventory.medication-index')->name('mex.index');
     });
 
-    // Patient Profile - Accessible by Auth (Gate check in component)
-    Route::prefix('patients')->name('patients.')->group(function () {
-        \Livewire\Volt\Volt::route('/{patient:patient_ID}', 'patient.patient-profile')->name('show');
-    });
+
 
     // Patient Management - Accessible by Admin, Doctor, Staff
     Route::middleware(['role:system_admin|doctor|staff'])->prefix('patients')->name('patients.')->group(function () {
@@ -41,6 +38,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         \Livewire\Volt\Volt::route('/create', 'patient.patient-form')->name('create');
 
         \Livewire\Volt\Volt::route('/{patient:patient_ID}/edit', 'patient.patient-form')->name('edit');
+    });
+
+    // Patient Profile - Accessible by Auth (Gate check in component)
+    Route::prefix('patients')->name('patients.')->group(function () {
+        \Livewire\Volt\Volt::route('/{patient:patient_ID}', 'patient.patient-profile')->name('show');
     });
 
     // Appointment Management
@@ -74,9 +76,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // Profile Detail Edit Page
-    \Livewire\Volt\Volt::route('/profile/edit', 'profile.profile-edit')->name('profile.detail');
+    // \Livewire\Volt\Volt::route('/profile/edit', 'profile.profile-edit')->name('profile.detail');
 });
 
 require __DIR__ . '/auth.php';

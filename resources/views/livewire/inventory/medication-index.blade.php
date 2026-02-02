@@ -43,7 +43,8 @@ new class extends Component {
             <p class="text-sm text-gray-600">View and manage drug stock levels.</p>
         </div>
         <div class="flex gap-2">
-            <flux:button icon="plus" variant="primary" x-on:click="$dispatch('open-modal', 'create-medication')">
+            <flux:button icon="plus" variant="primary"
+                x-on:click="$dispatch('reset-medication-form'); $dispatch('open-modal', 'create-medication')">
                 Add Medication
             </flux:button>
         </div>

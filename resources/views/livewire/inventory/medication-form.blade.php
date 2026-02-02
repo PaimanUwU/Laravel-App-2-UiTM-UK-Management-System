@@ -9,6 +9,7 @@ new class extends Component {
     public $type = '';
     public $min_threshold = 10;
 
+
     #[\Livewire\Attributes\On('setEditMed')]
     public function setEditMed($id)
     {
@@ -16,6 +17,12 @@ new class extends Component {
         $this->name = $this->medication->meds_name;
         $this->type = $this->medication->meds_type;
         $this->min_threshold = $this->medication->min_threshold;
+    }
+
+    #[\Livewire\Attributes\On('reset-medication-form')]
+    public function resetForm()
+    {
+        $this->reset(['name', 'type', 'min_threshold', 'medication']);
     }
 
     public function save()

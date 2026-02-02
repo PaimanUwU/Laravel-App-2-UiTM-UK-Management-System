@@ -22,7 +22,7 @@ new class extends Component {
         <p class="text-sm text-gray-600">Track all administrative actions and security events.</p>
     </div>
 
-    <div class="px-4 bg-white overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+    <div class=" bg-white overflow-hidden shadow sm:rounded-lg">
         <table class="min-w-full divide-y divide-gray-300">
             <thead class="bg-gray-50">
                 <tr>

@@ -13,31 +13,31 @@ new class extends Component {
     private function getCurrentDoctor()
     {
         $user = auth()->user();
-        
+
         if (!$user) {
             \Log::info('No authenticated user');
             return null;
         }
-        
+
         if ($user->hasRole('system_admin')) {
             \Log::info('User is system admin');
             return null;
         }
-        
+
         \Log::info('Getting doctor for user', [
             'userId' => $user->id,
             'userName' => $user->name,
             'userRoles' => $user->roles->pluck('name')->toArray()
         ]);
-        
+
         $doctor = $user->doctor;
-        
+
         \Log::info('Doctor relationship result', [
             'doctorFound' => $doctor ? 'Yes' : 'No',
             'doctorId' => $doctor?->doctor_id, // FIXED: lowercase attribute
             'doctorName' => $doctor?->doctor_name
         ]);
-        
+
         return $doctor;
     }
 
@@ -52,7 +52,7 @@ new class extends Component {
             \Flux::toast('Invalid doctor ID', 'error');
             return;
         }
-        
+
         // Ensure we have the current doctor
         $currentDoctor = $this->getCurrentDoctor();
         if (!$currentDoctor) {
@@ -60,13 +60,13 @@ new class extends Component {
             \Log::error('Current doctor not found in assignDoctor');
             return;
         }
-        
+
         \Log::info('assignDoctor called', [
-            'doctorId' => $doctorId, 
+            'doctorId' => $doctorId,
             'currentDoctorId' => $currentDoctor->doctor_id,
             'currentDoctorName' => $currentDoctor->doctor_name
         ]);
-        
+
         $targetDoctor = Doctor::find($doctorId);
         \Log::info('targetDoctor found', [
             'found' => $targetDoctor ? 'Yes' : 'No',
@@ -74,7 +74,7 @@ new class extends Component {
             'targetDoctorName' => $targetDoctor?->doctor_name,
             'currentSupervisorId' => $targetDoctor?->supervisor_id // CORRECT: matches DB column
         ]);
-        
+
         if ($targetDoctor) {
             // Remove existing supervisee
             $existingSupervisee = $this->doctor->supervisees()->first();
@@ -82,28 +82,28 @@ new class extends Component {
                 $existingSupervisee->update(['supervisor_id' => null]);
                 \Log::info('Removed existing supervisee', ['existingSuperviseeId' => $existingSupervisee->doctor_id]); // FIXED
             }
-            
+
             // Prevent self-supervision
             if ($targetDoctor->doctor_id == $currentDoctor->doctor_id) {
                 \Flux::toast('You cannot assign yourself as your own supervisee', 'error');
                 return;
             }
-            
+
             // Check duplicate assignment
             if ($targetDoctor->supervisor_id == $currentDoctor->doctor_id) { // LOOSE COMPARISON
                 \Flux::toast("Dr. {$targetDoctor->doctor_name} is already your supervisee.", 'warning');
                 return;
             }
-            
+
             // Update supervisor_id
             $targetDoctor->supervisor_id = $currentDoctor->doctor_id;
             $updated = $targetDoctor->save();
-            
+
             \Log::info('supervisor update attempt', [
                 'newSupervisorId' => $targetDoctor->fresh()->supervisor_id,
                 'currentDoctorId' => $currentDoctor->doctor_id // FIXED
             ]);
-            
+
             if ($updated) {
                 \Flux::toast("Dr. {$targetDoctor->doctor_name} assigned as supervisee.");
             } else {
@@ -121,35 +121,35 @@ new class extends Component {
     public function removeSupervisee(int $doctorId)
     {
         \Log::info('removeSupervisee called', ['doctorId' => $doctorId]);
-        
+
         if ($doctorId === null) {
             \Flux::toast('Invalid doctor ID', 'error');
             return;
         }
-        
+
         // Ensure we have the current doctor
         $currentDoctor = $this->getCurrentDoctor();
         if (!$currentDoctor) {
             \Flux::toast('Unable to identify current doctor', 'error');
             return;
         }
-        
+
         \Log::info('Current doctor found', ['doctorId' => $currentDoctor->doctor_id]);
-        
+
         $targetDoctor = Doctor::find($doctorId);
         \Log::info('Target doctor found', [
             'found' => $targetDoctor ? 'Yes' : 'No',
             'supervisorId' => $targetDoctor?->supervisor_id,
             'currentDoctorId' => $currentDoctor->doctor_id
         ]);
-        
+
         if ($targetDoctor && $targetDoctor->supervisor_id == $currentDoctor->doctor_id) {
             // Remove the supervisor_id from the supervisee using save() method
             $targetDoctor->supervisor_id = null;
             $updated = $targetDoctor->save();
 
             \Log::info('Update attempt', [
-                'updated' => $updated, 
+                'updated' => $updated,
                 'newSupervisorId' => $targetDoctor->fresh()->supervisor_id,
                 'targetDoctorId' => $targetDoctor->doctor_id
             ]);
@@ -172,7 +172,7 @@ new class extends Component {
         }
 
         $this->doctor = $this->getCurrentDoctor();
-        
+
         \Log::info('Doctor mount', [
             'doctorFound' => $this->doctor ? 'Yes' : 'No',
             'doctorId' => $this->doctor?->doctor_id, // FIXED
@@ -226,7 +226,7 @@ new class extends Component {
             ->where('supervisor_id', $currentDoctor->doctor_id) // FIXED
             ->get();
         $data['supervisees'] = $supervisees;
-        
+
         \Log::info('Supervisee query', [
             'currentDoctorId' => $currentDoctor->doctor_id, // FIXED
             'superviseesCount' => $supervisees->count(),
@@ -253,7 +253,7 @@ new class extends Component {
             ->whereNull('supervisor_id') // CORRECT: matches DB column casing
             ->orderBy('doctor_name')
             ->get();
-            
+
         \Log::info('Available doctors', [
             'currentDoctorId' => $currentDoctor->doctor_id, // FIXED
             'count' => $availableDoctors->count(),
@@ -269,10 +269,10 @@ new class extends Component {
 <div>
     @if($this->hasDoctorProfile())
         <!-- Combined Doctor & Queue Command Center -->
-        <flux:card class="p-0 overflow-hidden mb-8 border-none shadow-sm">
-            <div class="flex flex-col lg:flex-row">
+        {{-- <flux:card class="p-0 overflow-hidden mb-8 border-none shadow-sm"> --}}
+            {{-- <div class="flex flex-row lg:flex-row">
                 <!-- Sidebar: Doctor Profile & Status -->
-                <div class="w-full lg:w-80 bg-gray-50/80 p-6 flex-none border-b lg:border-b-0 lg:border-r border-gray-100">
+                {{-- <div class="w-full lg:w-80 bg-gray-50/80 p-6 flex-none border-b lg:border-b-0 lg:border-r border-gray-100">
                     <div class="flex flex-col items-center text-center space-y-4">
                         <div class="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
                             {{ substr($doctor->doctor_name, 0, 1) }}
@@ -290,7 +290,7 @@ new class extends Component {
                                 </span>
                             </div>
                         </div>
-                        
+
                         <div class="w-full pt-4 space-y-3">
                             <flux:button wire:click="toggleStatus" class="w-full" size="sm" variant="{{ $doctor->status === 'ACTIVE' ? 'outline' : 'filled' }}">
                                 {{ $doctor->status === 'ACTIVE' ? 'Go on Break' : 'Resume Service' }}
@@ -302,10 +302,10 @@ new class extends Component {
                             <p class="text-sm text-gray-700 font-medium">{{ $doctor->department->dept_name ?? 'General Practice' }}</p>
                         </div>
                     </div>
-                </div>
+                </div> --}}
 
                 <!-- Main: Today's Queue -->
-                <div class="flex-1 p-6 lg:p-8 min-w-0">
+                {{-- <div class="flex-1 p-6 lg:p-8 min-w-0">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
                             <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
@@ -335,7 +335,7 @@ new class extends Component {
                                     <flux:badge color="{{ $appointment->appt_status === 'CONSULTING' ? 'blue' : 'green' }}" size="xs" variant="soft">
                                         {{ $appointment->appt_status }}
                                     </flux:badge>
-                                    <flux:button size="sm" href="/consultation/{{ $appointment->appt_id }}" variant="ghost" square>
+                                    <flux:button size="sm" href="{{ route('patients.show', ['patient' => $appointment->patient_id, 'tab' => 'consultation', 'appt_id' => $appointment->appt_id]) }}" variant="ghost" square>
                                         <flux:icon.chevron-right class="w-4 h-4" />
                                     </flux:button>
                                 </div>
@@ -348,19 +348,23 @@ new class extends Component {
                             </div>
                         @endforelse
                     </div>
-                </div>
-            </div>
-        </flux:card>
+                </div> --}}
+            {{-- </div> --}}
+        {{-- </flux:card> --}}
 
-            <hr class="border-gray-100">
+            {{-- <hr class="border-gray-100"> --}}
 
             <!-- SUPERVISOR DASHBOARD SECTION -->
             <section class="space-y-6">
                 <div class="flex items-center gap-4">
-                    <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Team Oversight</h1>
+                        <p class="text-sm text-gray-600">Overview for doctors supervising.</p>
+                    </div>
+                    {{-- <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
                         <flux:icon.users variant="solid" class="w-5 h-5" />
                     </div>
-                    <h2 class="text-xl font-bold text-gray-900 tracking-tight">Team Oversight</h2>
+                    <h2 class="text-xl font-bold text-gray-900 tracking-tight">Team Oversight</h2> --}}
                     <flux:badge color="purple" variant="soft">Overlooking {{ $supervisees->count() }} Staff</flux:badge>
                 </div>
 
@@ -370,12 +374,12 @@ new class extends Component {
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-gray-900">Team Members</h3>
                         </div>
-                        
+
                         <!-- Add New Supervisee Button -->
                         <div class="mb-4">
-                            <flux:button 
-                                wire:click="$toggle('showAvailableDoctors')" 
-                                variant="outline" 
+                            <flux:button
+                                wire:click="$toggle('showAvailableDoctors')"
+                                variant="outline"
                                 size="sm"
                                 icon="plus"
                             >
@@ -389,7 +393,7 @@ new class extends Component {
                                 <h5 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Available Doctors</h5>
                                 @if($availableDoctors->isNotEmpty())
                                     @foreach($availableDoctors as $doctor)
-                                        <button 
+                                        <button
                                             type="button"
                                             onclick="if(confirm('Are you sure you want to assign Dr. {{ $doctor->doctor_name }} as your supervisee?')) { @this.call('assignDoctor', {{ $doctor->doctor_id }}); }"
                                             class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
@@ -422,7 +426,7 @@ new class extends Component {
                             <h5 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Current Supervisees</h5>
                             <div class="space-y-3">
                                 @forelse($supervisees as $supervisee)
-                                    <button 
+                                    <button
                                         type="button"
                                         onclick="if(confirm('Are you sure you want to remove Dr. {{ $supervisee->doctor_name }} from your supervision?')) { @this.call('removeSupervisee', {{ $supervisee->doctor_id }}); }"
                                         class="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-red-50 transition-colors text-left"
@@ -464,19 +468,22 @@ new class extends Component {
                         </h3>
                         <div class="space-y-4">
                             @forelse($recentConsultations as $activity)
-                                <div class="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                                    <div class="mt-1">
-                                        <flux:icon.clipboard-document-check variant="mini" class="w-5 h-5 text-teal-500" />
+                                <a href="{{ route('consultations.view', $activity) }}" class="block group/item">
+                                    <div class="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                                        <div class="mt-1">
+                                            <flux:icon.clipboard-document-check variant="mini" class="w-5 h-5 text-teal-500 group-hover/item:text-teal-600" />
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-900 group-hover/item:text-blue-600 transition-colors">
+                                                <span class="font-bold">Dr. {{ $activity->doctor->doctor_name }}</span>
+                                                {{ in_array(strtolower($activity->appt_status), ['completed']) ? 'completed' : 'is consulting' }}
+                                                <span class="font-bold">{{ $activity->patient->patient_name }}</span>
+                                            </p>
+                                            <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at ? \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() : 'Unknown time' }}</p>
+                                        </div>
+                                        <flux:icon.chevron-right class="w-4 h-4 text-gray-300 ml-auto opacity-0 group-hover/item:opacity-100 transition-opacity" />
                                     </div>
-                                    <div>
-                                        <p class="text-sm text-gray-900">
-                                            <span class="font-bold">Dr. {{ $activity->doctor->doctor_name }}</span>
-                                            {{ in_array(strtolower($activity->appt_status), ['completed']) ? 'completed' : 'is consulting' }}
-                                            <span class="font-bold">{{ $activity->patient->patient_name }}</span>
-                                        </p>
-                                        <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at ? \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() : 'Unknown time' }}</p>
-                                    </div>
-                                </div>
+                                </a>
                             @empty
                                 <div class="flex flex-col items-center justify-center py-8 text-center text-gray-400">
                                     <flux:icon.clock class="w-8 h-8 opacity-20 mb-2" />

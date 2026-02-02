@@ -103,6 +103,17 @@ new class extends Component {
         \Flux::toast('Profile updated successfully.');
     }
 
+    public function sendVerification()
+    {
+        if ($this->user->hasVerifiedEmail()) {
+            return;
+        }
+
+        $this->user->sendEmailVerificationNotification();
+
+        session()->flash('status', 'verification-link-sent');
+    }
+
     public function updatePassword()
     {
         $this->validate([
@@ -124,7 +135,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="w-full mx-auto space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -137,7 +148,7 @@ new class extends Component {
     </div>
 
     <!-- Profile Information -->
-    <flux:card>
+    <flux:card class="p-4">
         <div class="flex items-center gap-3 mb-6">
             <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
                 <flux:icon.user variant="solid" class="w-6 h-6" />
@@ -148,17 +159,27 @@ new class extends Component {
         <form wire:submit.prevent="updateProfile" class="space-y-4">
             <!-- Basic Information (for all users) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <flux:input
-                    label="Full Name"
-                    wire:model="profileForm.name"
-                    required
-                />
-                <flux:input
-                    label="Email Address"
-                    type="email"
-                    wire:model="profileForm.email"
-                    required
-                />
+                <flux:input label="Full Name" wire:model="profileForm.name" required />
+                <flux:input label="Email Address" type="email" wire:model="profileForm.email" required />
+
+                @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && !$user->hasVerifiedEmail())
+                    <div class="md:col-span-2">
+                        <p class="text-sm mt-2 text-gray-800">
+                            {{ __('Your email address is unverified.') }}
+
+                            <button wire:click.prevent="sendVerification"
+                                class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                {{ __('Click here to re-send the verification email.') }}
+                            </button>
+                        </p>
+
+                        @if (session('status') === 'verification-link-sent')
+                            <p class="mt-2 font-medium text-sm text-green-600">
+                                {{ __('A new verification link has been sent to your email address.') }}
+                            </p>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <!-- Patient Information (only for patients) -->
@@ -166,58 +187,26 @@ new class extends Component {
                 <div class="border-t pt-4 mt-6">
                     <h3 class="text-lg font-semibold mb-4">Details</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <flux:select
-                            label="Gender"
-                            wire:model="profileForm.patient_gender"
-                            required
-                        >
+                        <flux:select label="Gender" wire:model="profileForm.patient_gender" required>
                             <option value="">Select Gender</option>
                             <option value="MALE">Male</option>
                             <option value="FEMALE">Female</option>
                             <option value="OTHER">Other</option>
                         </flux:select>
-                        <flux:input
-                            label="Date of Birth"
-                            type="date"
-                            wire:model="profileForm.patient_dob"
-                            required
-                        />
-                        <flux:input
-                            label="Phone Number"
-                            wire:model="profileForm.patient_hp"
-                            placeholder="+60123456789"
-                        />
-                        <flux:input
-                            label="Alternative Phone"
-                            wire:model="profileForm.phone"
-                            placeholder="+60123456789"
-                        />
-                        <flux:input
-                            label="Student ID"
-                            wire:model="profileForm.student_id"
-                            placeholder="e.g., 2021234567"
-                        />
-                        <flux:input
-                            label="IC Number"
-                            wire:model="profileForm.ic_number"
-                            placeholder="e.g., 123456-78-9012"
-                        />
+                        <flux:input label="Date of Birth" type="date" wire:model="profileForm.patient_dob" required />
+                        <flux:input label="Phone Number" wire:model="profileForm.patient_hp" placeholder="+60123456789" />
+                        <flux:input label="Alternative Phone" wire:model="profileForm.phone" placeholder="+60123456789" />
+                        <flux:input label="Student ID" wire:model="profileForm.student_id" placeholder="e.g., 2021234567" />
+                        <flux:input label="IC Number" wire:model="profileForm.ic_number"
+                            placeholder="e.g., 123456-78-9012" />
                     </div>
 
                     <div class="grid grid-cols-1 gap-4 mt-4">
-                        <flux:textarea
-                            label="Address"
-                            wire:model="profileForm.address"
-                            rows="3"
-                            placeholder="Enter your full address"
-                        />
+                        <flux:textarea label="Address" wire:model="profileForm.address" rows="3"
+                            placeholder="Enter your full address" />
 
-                        <flux:textarea
-                            label="Medical History"
-                            wire:model="profileForm.patient_meds_history"
-                            rows="4"
-                            placeholder="List any known allergies, chronic conditions, or medications..."
-                        />
+                        <flux:textarea label="Medical History" wire:model="profileForm.patient_meds_history" rows="4"
+                            placeholder="List any known allergies, chronic conditions, or medications..." />
                     </div>
                 </div>
             @endif
@@ -232,7 +221,7 @@ new class extends Component {
     </flux:card>
 
     <!-- Password Change -->
-    <flux:card>
+    <flux:card class="p-4">
         <div class="flex items-center gap-3 mb-6">
             <div class="p-2 bg-red-50 text-red-600 rounded-lg">
                 <flux:icon.lock-closed variant="solid" class="w-6 h-6" />
@@ -241,26 +230,12 @@ new class extends Component {
         </div>
 
         <form wire:submit.prevent="updatePassword" class="space-y-4">
-            <flux:input
-                label="Current Password"
-                type="password"
-                wire:model="passwordForm.current_password"
-                required
-            />
+            <flux:input label="Current Password" type="password" wire:model="passwordForm.current_password" required />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <flux:input
-                    label="New Password"
-                    type="password"
-                    wire:model="passwordForm.password"
-                    required
-                    helper="Must be at least 8 characters"
-                />
-                <flux:input
-                    label="Confirm New Password"
-                    type="password"
-                    wire:model="passwordForm.password_confirmation"
-                    required
-                />
+                <flux:input label="New Password" type="password" wire:model="passwordForm.password" required
+                    helper="Must be at least 8 characters" />
+                <flux:input label="Confirm New Password" type="password" wire:model="passwordForm.password_confirmation"
+                    required />
             </div>
 
             <div class="flex justify-end">

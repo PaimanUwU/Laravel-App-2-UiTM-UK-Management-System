@@ -65,7 +65,7 @@ new class extends Component {
     $isPatient = !$user->hasAnyRole(['system_admin', 'doctor', 'staff', 'head_office']);
 
     if ($isPatient) {
-      // Check if patient profile exists, otherwise maybe show incomplete state? 
+      // Check if patient profile exists, otherwise maybe show incomplete state?
       // For now, let the component handle it or fail, but ensuring routing is correct.
       return ['isPatient' => true];
     }
@@ -153,11 +153,11 @@ new class extends Component {
   @else
     <div class="space-y-6">
       @if($isDoctor)
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+        {{-- <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <strong class="font-bold">DEBUG MODE:</strong>
           <span class="block sm:inline">Role: Doctor | Supervisee Found:
             {{ $supervisee ? 'YES (' . $supervisee->doctor_name . ')' : 'NO' }}</span>
-        </div>
+        </div> --}}
 
         <div class="flex items-center justify-between">
           <div>
@@ -354,6 +354,9 @@ new class extends Component {
                       <th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest">Patient</th>
                       <th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest text-right">
                         Status</th>
+                      @if($isDoctor)
+                        <th class="px-3 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Action</th>
+                      @endif
                     </tr>
                   </thead>
                   <tbody class="bg-white divide-y divide-gray-50">
@@ -391,6 +394,11 @@ new class extends Component {
                             {{ ucfirst($appointment->appt_status) }}
                           </flux:badge>
                         </td>
+                        @if($isDoctor)
+                          <td class="px-3 py-3 whitespace-nowrap text-right">
+                             <flux:button size="xs" href="{{ route('patients.show', ['patient' => $appointment->patient_id, 'tab' => 'consultation', 'appt_id' => $appointment->appt_id]) }}" icon="clipboard-document-check" variant="primary">Consult</flux:button>
+                          </td>
+                        @endif
                       </tr>
                     @endforeach
                   </tbody>
@@ -441,19 +449,22 @@ new class extends Component {
               <h3 class="font-bold text-gray-900 mb-4">Supervisee Activity</h3>
               <div class="space-y-4">
                 @forelse($recentTeamActivity as $activity)
-                  <div class="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div class="mt-1">
-                      <flux:icon.clipboard-document-check variant="mini" class="w-5 h-5 text-teal-500" />
+                  <a href="{{ route('consultations.view', $activity) }}" class="block group/item">
+                    <div class="flex items-start gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                      <div class="mt-1">
+                        <flux:icon.clipboard-document-check variant="mini" class="w-5 h-5 text-teal-500 group-hover/item:text-teal-600" />
+                      </div>
+                      <div>
+                        <p class="text-sm text-gray-900 group-hover/item:text-blue-600 transition-colors">
+                          <span class="font-bold">Dr. {{ $activity->doctor->doctor_name }}</span>
+                          {{ in_array(strtolower($activity->appt_status), ['completed']) ? 'completed' : 'is consulting' }}
+                          <span class="font-bold">{{ $activity->patient->patient_name }}</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at ? \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() : 'Unknown time' }}</p>
+                      </div>
+                      <flux:icon.chevron-right class="w-4 h-4 text-gray-300 ml-auto opacity-0 group-hover/item:opacity-100 transition-opacity" />
                     </div>
-                    <div>
-                      <p class="text-sm text-gray-900">
-                        <span class="font-bold">Dr. {{ $activity->doctor->doctor_name }}</span>
-                        {{ in_array(strtolower($activity->appt_status), ['completed']) ? 'completed' : 'is consulting' }}
-                        <span class="font-bold">{{ $activity->patient->patient_name }}</span>
-                      </p>
-                      <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at ? \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() : 'Unknown time' }}</p>
-                    </div>
-                  </div>
+                  </a>
                 @empty
                   <div class="flex flex-col items-center justify-center py-8 text-center text-gray-400">
                     <flux:icon.clock class="w-8 h-8 opacity-20 mb-2" />

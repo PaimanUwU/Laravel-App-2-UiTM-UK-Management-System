@@ -16,12 +16,6 @@
             </a>
 
             @auth
-                <a href="{{ route('profile.detail') }}"
-                    class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('profile.detail') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
-                    <flux:icon.user variant="outline" class="w-5 h-5 mr-3" />
-                    {{ __('Edit Profile') }}
-                </a>
-                
                 @role('system_admin|doctor|staff')
                 <a href="{{ route('appointments.index') }}"
                     class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('appointments.*') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
@@ -47,7 +41,7 @@
                 <a href="{{ route('doctor.dashboard') }}"
                     class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('doctor.dashboard') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
                     <flux:icon.presentation-chart-line variant="outline" class="w-5 h-5 mr-3" />
-                    {{ __('My Dashboard') }}
+                    {{ __('Team Oversight') }}
                 </a>
                 @endrole
 
@@ -69,15 +63,15 @@
                             <flux:icon.users variant="outline" class="w-5 h-5 mr-3" />
                             {{ __('Users') }}
                         </a>
-                        <a href="{{ route('admin.settings') }}"
-                            class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('admin.settings') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
-                            <flux:icon.cog-6-tooth variant="outline" class="w-5 h-5 mr-3" />
-                            {{ __('Settings') }}
-                        </a>
                         <a href="{{ route('admin.audit-logs') }}"
                             class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('admin.audit-logs') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
                             <flux:icon.clipboard-document-list variant="outline" class="w-5 h-5 mr-3" />
                             {{ __('Audit Logs') }}
+                        </a>
+                        <a href="{{ route('admin.settings') }}"
+                            class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('admin.settings') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
+                            <flux:icon.cog-6-tooth variant="outline" class="w-5 h-5 mr-3" />
+                            {{ __('Settings') }}
                         </a>
                     </div>
                 </div>

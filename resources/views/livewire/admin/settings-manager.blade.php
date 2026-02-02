@@ -12,7 +12,7 @@ new class extends Component {
     {
         $this->clinic_name = Setting::where('key', 'clinic_name')->first()?->value ?? 'UK UiTM Management System';
         $this->operating_hours = Setting::where('key', 'operating_hours')->first()?->value ?? '8:00 AM - 5:00 PM';
-        
+
         // Check maintenance mode from file first, then fallback to database
         $maintenanceFile = storage_path('framework/maintenance.json');
         if (file_exists($maintenanceFile)) {
@@ -63,7 +63,7 @@ new class extends Component {
         <p class="text-sm text-gray-600">Configure global variables for the clinic.</p>
     </div>
 
-    <flux:card>
+    <flux:card class="p-4">
         <form wire:submit="save" class="space-y-6">
             <flux:input wire:model="clinic_name" label="Clinic Name" placeholder="e.g. UK UiTM Management System" />
 

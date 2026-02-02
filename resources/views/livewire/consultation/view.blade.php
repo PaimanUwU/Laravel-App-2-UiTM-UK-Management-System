@@ -42,7 +42,7 @@ new class extends Component {
 
                     <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-8">
                         {{-- Appointment Date --}}
-                        <div class="sm:col-span-1">
+                        <div class="mb-4 sm:col-span-1">
                             <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Date & Time') }}</dt>
                             <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300">
                                 {{ $appointment->appt_date instanceof \Carbon\Carbon ? $appointment->appt_date->format('M d, Y') : \Carbon\Carbon::parse($appointment->appt_date)->format('M d, Y') }} at {{ $appointment->appt_time }}
@@ -50,7 +50,7 @@ new class extends Component {
                         </div>
 
                         {{-- Status --}}
-                        <div class="sm:col-span-1">
+                        <div class="mb-4 sm:col-span-1">
                             <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Status') }}</dt>
                             <dd class="mt-1 text-sm">
                                 <flux:badge :variant="[
@@ -68,7 +68,7 @@ new class extends Component {
                         </div>
 
                         {{-- Attending Doctor --}}
-                        <div class="sm:col-span-1">
+                        <div class="mb-4 sm:col-span-1">
                             <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Attending Doctor') }}</dt>
                             <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300">
                                 @if($appointment->doctor)
@@ -83,7 +83,7 @@ new class extends Component {
                         </div>
 
                         {{-- Appointment ID --}}
-                        <div class="sm:col-span-1">
+                        <div class="mb-4 sm:col-span-1">
                             <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Appointment ID') }}</dt>
                             <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300">#{{ $appointment->appt_id }}</dd>
                         </div>
@@ -94,7 +94,7 @@ new class extends Component {
                     @if($appointment->medicalCheckup)
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-8">
                             {{-- Symptoms --}}
-                            <div class="sm:col-span-2">
+                            <div class="mb-4 sm:col-span-2">
                                 <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Symptoms & Complaints') }}</dt>
                                 <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300 whitespace-pre-line">
                                     {{ $appointment->medicalCheckup->checkup_symptom ?? 'N/A' }}
@@ -102,7 +102,7 @@ new class extends Component {
                             </div>
 
                             {{-- Findings --}}
-                            <div class="sm:col-span-1">
+                            <div class="mb-4 sm:col-span-1">
                                 <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Clinical Findings') }}</dt>
                                 <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300 whitespace-pre-line">
                                     {{ $appointment->medicalCheckup->checkup_finding ?? 'N/A' }}
@@ -110,7 +110,7 @@ new class extends Component {
                             </div>
 
                             {{-- Treatment --}}
-                            <div class="sm:col-span-1">
+                            <div class="mb-4 sm:col-span-1">
                                 <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Treatment / Remarks') }}</dt>
                                 <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300 whitespace-pre-line">
                                     {{ $appointment->medicalCheckup->checkup_treatment ?? 'N/A' }}
@@ -118,7 +118,7 @@ new class extends Component {
                             </div>
 
                             {{-- Vitals Section --}}
-                            <div class="sm:col-span-2">
+                            <div class="mb-4 sm:col-span-2">
                                 <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">{{ __('Vitals') }}</dt>
                                 <dd class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-lg">
                                     <div>
@@ -157,17 +157,17 @@ new class extends Component {
                                     <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">
                                         <thead class="bg-zinc-50 dark:bg-zinc-800/50">
                                             <tr>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-zinc-500 uppercase">Medication</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-zinc-500 uppercase">Amount</th>
-                                                <th class="px-4 py-2 text-left text-xs font-medium text-zinc-500 uppercase">Dosage</th>
+                                                <th class="px-4 py-4 text-left text-xs font-medium text-zinc-500 uppercase">Medication</th>
+                                                <th class="px-4 py-4 text-left text-xs font-medium text-zinc-500 uppercase">Amount</th>
+                                                <th class="px-4 py-4 text-left text-xs font-medium text-zinc-500 uppercase">Dosage</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700 bg-white dark:bg-zinc-900">
                                             @foreach($appointment->prescribedMeds as $med)
                                                 <tr>
-                                                    <td class="px-4 py-2 text-sm text-zinc-900 dark:text-zinc-100">{{ $med->medication->meds_name }}</td>
-                                                    <td class="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 text-center">{{ $med->amount }}</td>
-                                                    <td class="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $med->dosage }}</td>
+                                                    <td class="px-4 py-4 text-sm text-zinc-900 dark:text-zinc-100">{{ $med->medication->meds_name }}</td>
+                                                    <td class="px-4 py-4 text-sm text-zinc-600 dark:text-zinc-400 text-center">{{ $med->amount }}</td>
+                                                    <td class="px-4 py-4 text-sm text-zinc-600 dark:text-zinc-400">{{ $med->dosage }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
@@ -189,9 +189,9 @@ new class extends Component {
                                 <h4 class="font-medium text-sm">Medical Certificate Issued</h4>
                             </div>
                             <p class="text-sm text-blue-600 dark:text-blue-300">
-                                Valid from <strong>{{ $appointment->medicalCertificate->mc_date_start instanceof \Carbon\Carbon ? $appointment->medicalCertificate->mc_date_start->format('M d, Y') : $appointment->medicalCertificate->mc_date_start }}</strong> 
+                                Valid from <strong>{{ $appointment->medicalCertificate->mc_date_start instanceof \Carbon\Carbon ? $appointment->medicalCertificate->mc_date_start->format('M d, Y') : $appointment->medicalCertificate->mc_date_start }}</strong>
                                 to <strong>{{ $appointment->medicalCertificate->mc_date_end instanceof \Carbon\Carbon ? $appointment->medicalCertificate->mc_date_end->format('M d, Y') : $appointment->medicalCertificate->mc_date_end }}</strong>.
-                                (@php 
+                                (@php
                                     $startDate = $appointment->medicalCertificate->mc_date_start instanceof \Carbon\Carbon ? $appointment->medicalCertificate->mc_date_start : \Carbon\Carbon::parse($appointment->medicalCertificate->mc_date_start);
                                     $endDate = $appointment->medicalCertificate->mc_date_end instanceof \Carbon\Carbon ? $appointment->medicalCertificate->mc_date_end : \Carbon\Carbon::parse($appointment->medicalCertificate->mc_date_end);
                                     $days = $startDate->diffInDays($endDate) + 1;
@@ -205,14 +205,14 @@ new class extends Component {
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-8">
                             {{-- Created At --}}
                             @if($appointment->created_at)
-                            <div class="sm:col-span-1">
+                            <div class="mb-4 sm:col-span-1">
                                 <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Record Created') }}</dt>
                                 <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300">{{ $appointment->created_at instanceof \Carbon\Carbon ? $appointment->created_at->format('Y-m-d H:i') : \Carbon\Carbon::parse($appointment->created_at)->format('Y-m-d H:i') }}</dd>
                             </div>
                             @endif
                             {{-- Last Updated --}}
                             @if($appointment->updated_at)
-                            <div class="sm:col-span-1">
+                            <div class="mb-4 sm:col-span-1">
                                 <dt class="text-sm font-medium text-zinc-500 dark:text-zinc-400">{{ __('Last Updated') }}</dt>
                                 <dd class="mt-1 text-sm text-zinc-900 dark:text-zinc-300">{{ $appointment->updated_at instanceof \Carbon\Carbon ? $appointment->updated_at->format('Y-m-d H:i') : \Carbon\Carbon::parse($appointment->updated_at)->format('Y-m-d H:i') }}</dd>
                             </div>
