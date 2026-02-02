@@ -18,6 +18,10 @@ class MedicalCheckupFactory extends Factory
       'checkup_test' => $this->faker->sentence(),
       'checkup_finding' => $this->faker->sentence(),
       'checkup_treatment' => $this->faker->sentence(),
+      'vital_bp' => $this->faker->numberBetween(90, 140) . '/' . $this->faker->numberBetween(60, 90),
+      'vital_heart_rate' => $this->faker->numberBetween(60, 100),
+      'vital_weight' => $this->faker->randomFloat(2, 45, 100),
+      'vital_height' => $this->faker->randomFloat(2, 150, 190),
     ];
   }
 }

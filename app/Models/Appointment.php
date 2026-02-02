@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MedicalCheckup;
+use App\Models\PrescribedMed;
 
 class Appointment extends Model
 {
@@ -31,5 +33,20 @@ class Appointment extends Model
     public function doctor()
     {
         return $this->belongsTo(Doctor::class, "doctor_id", "doctor_id");
+    }
+
+    public function medicalCheckup()
+    {
+        return $this->hasOne(MedicalCheckup::class, 'appt_id', 'appt_id');
+    }
+
+    public function prescribedMeds()
+    {
+        return $this->hasMany(PrescribedMed::class, 'appt_id', 'appt_id');
+    }
+
+    public function medicalCertificate()
+    {
+        return $this->hasOne(MedicalCertificate::class, 'appt_id', 'appt_id');
     }
 }

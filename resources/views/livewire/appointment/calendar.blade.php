@@ -27,7 +27,8 @@ new class extends Component {
                 ->get(),
             'monthAppointments' => Appointment::with(['patient', 'doctor'])
                 ->whereBetween('appt_date', [$startOfMonth, $endOfMonth])
-                ->where('appt_date', '!=', $today)
+                ->whereBetween('appt_date', [$startOfMonth, $endOfMonth])
+                // ->where('appt_date', '!=', $today) // Include today in monthly view as well
                 ->orderBy('appt_date')
                 ->orderBy('appt_time')
                 ->get(),

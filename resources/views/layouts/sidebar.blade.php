@@ -9,10 +9,6 @@
         </div>
 
         <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-            <div class="mb-4">
-                <livewire:global-search />
-            </div>
-
             <a href="{{ route('dashboard') }}"
                 class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('dashboard') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
                 <flux:icon.home variant="outline" class="w-5 h-5 mr-3" />
@@ -20,6 +16,12 @@
             </a>
 
             @auth
+                <a href="{{ route('profile.detail') }}"
+                    class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('profile.detail') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
+                    <flux:icon.user variant="outline" class="w-5 h-5 mr-3" />
+                    {{ __('Edit Profile') }}
+                </a>
+                
                 @role('system_admin|doctor|staff')
                 <a href="{{ route('appointments.index') }}"
                     class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('appointments.*') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
@@ -46,11 +48,6 @@
                     class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('doctor.dashboard') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
                     <flux:icon.presentation-chart-line variant="outline" class="w-5 h-5 mr-3" />
                     {{ __('My Dashboard') }}
-                </a>
-                <a href="{{ route('doctor.supervisor') }}"
-                    class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('doctor.supervisor') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
-                    <flux:icon.user-group variant="outline" class="w-5 h-5 mr-3" />
-                    {{ __('Supervisor') }}
                 </a>
                 @endrole
 

@@ -12,13 +12,19 @@ class PatientFactory extends Factory
 
   public function definition(): array
   {
+    $email = $this->faker->unique()->safeEmail();
+    $name = $this->faker->name();
+
     return [
-      'user_id' => User::factory(),
-      'patient_name' => $this->faker->name(),
+      'user_id' => User::factory()->create([
+        'email' => $email,
+        'name' => $name,
+      ])->id,
+      'patient_name' => $name,
       'patient_gender' => $this->faker->randomElement(['M', 'F']),
       'patient_dob' => $this->faker->date(),
       'patient_hp' => $this->faker->phoneNumber(),
-      'patient_email' => $this->faker->unique()->safeEmail(),
+      'patient_email' => $email,
       'patient_type' => $this->faker->randomElement(['STUDENT', 'STAFF', 'DEPENDENT']),
       'patient_meds_history' => $this->faker->optional()->sentence(),
       'student_id' => $this->faker->optional()->numerify('202#########'),

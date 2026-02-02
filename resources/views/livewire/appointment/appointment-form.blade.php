@@ -33,28 +33,42 @@ new class extends Component {
 
     public function save()
     {
-        $this->validate([
+        $rules = [
             'patient_id' => 'required|exists:patients,patient_id',
-            'doctor_id' => 'required|exists:doctors,doctor_id',
             'date' => 'required|date|after_or_equal:today',
             'time' => 'required',
-            'status' => 'required|string',
             'note' => 'nullable|string',
-        ]);
+        ];
 
-        // Simple conflict check
-        $exists = Appointment::where('doctor_id', $this->doctor_id)
-            ->where('appt_date', $this->date)
-            ->where('appt_time', $this->time)
-            ->when($this->appointment, function ($q) {
-                return $q->where('appt_id', '!=', $this->appointment->appt_id);
-            })
-            ->exists();
-
-        if ($exists) {
-            $this->addError('time', 'This time slot is already booked for the selected doctor.');
-            return;
+        if ($this->appointment) {
+            // Edit mode: Doctor is required
+            $rules['doctor_id'] = 'required|exists:doctors,doctor_id';
+            $rules['status'] = 'required|string';
+        } else {
+            // Create mode: Doctor is optional (pool)
+            $rules['doctor_id'] = 'nullable|exists:doctors,doctor_id';
+            // Status defaults to PENDING
         }
+
+        $this->validate($rules);
+
+        // Simple conflict check (only if doctor is selected)
+        if ($this->doctor_id) {
+            $exists = Appointment::where('doctor_id', $this->doctor_id)
+                ->where('appt_date', $this->date)
+                ->where('appt_time', $this->time)
+                ->when($this->appointment, function ($q) {
+                    return $q->where('appt_id', '!=', $this->appointment->appt_id);
+                })
+                ->exists();
+
+            if ($exists) {
+                $this->addError('time', 'This time slot is already booked for the selected doctor.');
+                return;
+            }
+        }
+
+
 
         $data = [
             'patient_id' => $this->patient_id,
@@ -117,29 +131,33 @@ new class extends Component {
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model="doctor_id" label="Doctor" placeholder="Select Doctor">
-                @foreach($doctors as $d)
-                    <flux:select.option value="{{ $d->doctor_id }}">{{ $d->doctor_name }}</flux:select.option>
-                @endforeach
-            </flux:select>
+            @if($appointment)
+                <flux:select wire:model="doctor_id" label="Doctor" placeholder="Select Doctor">
+                    @foreach($doctors as $d)
+                        <flux:select.option value="{{ $d->doctor_id }}">{{ $d->doctor_name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
 
             <div class="grid grid-cols-2 gap-4">
                 <flux:input wire:model="date" type="date" label="Date" />
                 <flux:select wire:model="time" label="Time Slot">
-                    {{-- Generate slots every 30 mins --}}
-                    @foreach(['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'] as $slot)
+                    {{-- Generate slots every 30 mins in 12-hour format --}}
+                    @foreach(['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM', '04:00 PM', '04:30 PM'] as $slot)
                         <flux:select.option value="{{ $slot }}">{{ $slot }}</flux:select.option>
                     @endforeach
                 </flux:select>
             </div>
 
-            <flux:select wire:model="status" label="Status">
-                <flux:select.option value="PENDING">Pending</flux:select.option>
-                <flux:select.option value="CONFIRMED">Confirmed</flux:select.option>
-                <flux:select.option value="Nice">Nice</flux:select.option>
-                <flux:select.option value="CANCELLED">Cancelled</flux:select.option>
-                <flux:select.option value="COMPLETED">Completed</flux:select.option>
-            </flux:select>
+            @if($appointment)
+                <flux:select wire:model="status" label="Status">
+                    <flux:select.option value="PENDING">Pending</flux:select.option>
+                    <flux:select.option value="CONFIRMED">Confirmed</flux:select.option>
+                    <flux:select.option value="Nice">Nice</flux:select.option>
+                    <flux:select.option value="CANCELLED">Cancelled</flux:select.option>
+                    <flux:select.option value="COMPLETED">Completed</flux:select.option>
+                </flux:select>
+            @endif
 
             <flux:textarea wire:model="note" label="Notes" placeholder="Reason for visit..." />
 

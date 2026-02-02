@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class StockMovement extends Model
 {
-    protected $primaryKey = 'stock_ID';
-    public $timestamps = false;
+    protected $primaryKey = 'stock_id';
+    const UPDATED_AT = null;
 
     protected $fillable = [
-        'meds_ID',
+        'meds_id',
         'quantity',
         'type',
         'reason',
@@ -19,7 +19,7 @@ class StockMovement extends Model
 
     public function medication()
     {
-        return $this->belongsTo(Medication::class, 'meds_ID', 'meds_ID');
+        return $this->belongsTo(Medication::class, 'meds_id', 'meds_id');
     }
 
     public function user()

@@ -53,7 +53,7 @@ new class extends Component {
     public function downloadReport()
     {
         // CSV Export Logic Placeholder
-        flux()->toast('Report download started...');
+        \Flux::toast('Report download started...');
     }
 };
 ?>

@@ -19,6 +19,10 @@ class MedicalCheckup extends Model
     'checkup_test',
     'checkup_finding',
     'checkup_treatment',
+    'vital_bp',
+    'vital_heart_rate',
+    'vital_weight',
+    'vital_height',
   ];
 
   public function appointment()

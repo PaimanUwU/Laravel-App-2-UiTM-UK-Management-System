@@ -13,10 +13,17 @@ new class extends Component {
     public Appointment $appointment;
     public $step = 'vitals'; // vitals, notes, meds, mc, finish
 
-    // Vitals & Notes
+    // Vitals
+    public $vital_bp = '';
+    public $vital_heart_rate = '';
+    public $vital_weight = '';
+    public $vital_height = '';
+
+    // Notes
     public $symptoms = '';
     public $diagnosis = '';
     public $treatment = '';
+    public $notes = ''; // Appointment notes
 
     // Prescription
     public $med_search = '';
@@ -29,13 +36,18 @@ new class extends Component {
     public function mount(Appointment $appointment)
     {
         $this->appointment = $appointment;
+        $this->notes = $appointment->appt_note;
 
         // Load existing data
         $checkup = MedicalCheckup::find($appointment->appt_id);
         if ($checkup) {
             $this->symptoms = $checkup->checkup_symptom;
-            $this->diagnosis = $checkup->checkup_test; // Mapping test to diagnosis/notes
+            $this->diagnosis = $checkup->checkup_finding; // Aligned to checkup_finding
             $this->treatment = $checkup->checkup_treatment;
+            $this->vital_bp = $checkup->vital_bp;
+            $this->vital_heart_rate = $checkup->vital_heart_rate;
+            $this->vital_weight = $checkup->vital_weight;
+            $this->vital_height = $checkup->vital_height;
         }
 
         $this->loadPrescriptions();
@@ -68,10 +80,17 @@ new class extends Component {
             ['appt_id' => $this->appointment->appt_id],
             [
                 'checkup_symptom' => $this->symptoms,
-                'checkup_test' => $this->diagnosis,
+                'checkup_finding' => $this->diagnosis, // Saved to finding
                 'checkup_treatment' => $this->treatment,
+                'vital_bp' => $this->vital_bp,
+                'vital_heart_rate' => $this->vital_heart_rate,
+                'vital_weight' => $this->vital_weight,
+                'vital_height' => $this->vital_height,
             ]
         );
+
+        $this->appointment->update(['appt_note' => $this->notes]);
+
         $this->step = 'meds';
     }
 
@@ -108,7 +127,7 @@ new class extends Component {
 
         $this->loadPrescriptions();
         $this->reset(['med_search']);
-        flux()->toast('Medication added.');
+        \Flux::toast('Medication added.');
     }
 
     public function removeMedication($prescribe_ID)
@@ -132,7 +151,7 @@ new class extends Component {
                 $pres->delete();
             });
             $this->loadPrescriptions();
-            flux()->toast('Medication removed.');
+            \Flux::toast('Medication removed.');
         }
     }
 
@@ -202,10 +221,26 @@ new class extends Component {
     {{-- Step 1: Notes --}}
     @if($step === 'vitals')
         <flux:card class="space-y-4">
+            <!-- Vitals Section -->
+            <div class="p-4 bg-gray-50 rounded-lg space-y-2">
+                <h3 class="font-semibold text-sm text-gray-700">Vitals</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <flux:input label="Blood Pressure" placeholder="120/80" wire:model="vital_bp" />
+                    <flux:input label="Heart Rate (bpm)" type="number" wire:model="vital_heart_rate" />
+                    <flux:input label="Weight (kg)" type="number" step="0.1" wire:model="vital_weight" />
+                    <flux:input label="Height (cm)" type="number" step="0.1" wire:model="vital_height" />
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 gap-4">
-                <flux:textarea wire:model="symptoms" label="Symptoms / Complaints" placeholder="Patient complains of..." />
-                <flux:textarea wire:model="diagnosis" label="Diagnosis / Findings" placeholder="Viral fever..." />
-                <flux:textarea wire:model="treatment" label="Treatment Plan" placeholder="Rest and fluids..." />
+                <flux:textarea wire:model="symptoms" label="Symptoms / Complaints" value="{{ $symptoms }}"
+                    placeholder="Patient complains of..." />
+                <flux:textarea wire:model="diagnosis" label="Diagnosis / Findings" value="{{ $diagnosis }}"
+                    placeholder="Viral fever..." />
+                <flux:textarea wire:model="treatment" label="Treatment Plan" value="{{ $treatment }}"
+                    placeholder="Rest and fluids..." />
+                <flux:textarea wire:model="notes" label="General Notes" value="{{ $notes }}"
+                    placeholder="Additional notes..." />
             </div>
             <div class="flex justify-end">
                 <flux:button variant="primary" wire:click="saveVitals">Next: Prescribe</flux:button>

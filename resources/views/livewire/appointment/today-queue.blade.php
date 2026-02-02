@@ -9,7 +9,7 @@ new class extends Component {
         return [
             'queue' => Appointment::with('patient', 'doctor')
                 ->where('appt_date', now()->format('Y-m-d'))
-                ->whereIn('appt_status', ['CONFIRMED', 'ARRIVED', 'CONSULTING'])
+                ->whereIn('appt_status', ['CONFIRMED', 'Confirmed', 'ARRIVED', 'Arrived', 'CONSULTING', 'Consulting'])
                 ->orderBy('appt_time')
                 ->get(),
         ];

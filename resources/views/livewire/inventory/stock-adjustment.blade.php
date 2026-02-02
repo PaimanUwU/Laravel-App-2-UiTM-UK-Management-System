@@ -58,7 +58,7 @@ new class extends Component {
         $this->reset(['quantity', 'reason']);
         $this->dispatch('close-modal', 'adjust-stock');
         $this->dispatch('medication-updated');
-        flux()->toast('Stock adjusted successfully.');
+        \Flux::toast('Stock adjusted successfully.');
     }
 };
 ?>

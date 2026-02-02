@@ -25,20 +25,27 @@ new class extends Component {
 
     public function save()
     {
-        $validated = $this->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($this->user?->id)],
-            'password' => $this->user ? 'nullable|min:8' : 'required|min:8',
             'role' => 'required|exists:roles,name',
-        ]);
+        ];
+
+        // Only require password for new users
+        if (!$this->user) {
+            $rules['password'] = 'required|min:8';
+        }
+
+        $validated = $this->validate($rules);
 
         $userData = [
             'name' => $this->name,
             'email' => $this->email,
         ];
 
-        if ($this->password) {
-            $userData['password'] = Hash::make($this->password);
+        // Only update password if it's provided (for new users or when changing it)
+        if (!$this->user || $this->password) {
+            $userData['password'] = Hash::make($this->password ?? $validated['password']);
         }
 
         if ($this->user) {
@@ -97,8 +104,9 @@ new class extends Component {
                 @endforeach
             </flux:select>
 
-            <flux:input wire:model="password" type="password" label="Password"
-                :placeholder="$user ? 'Leave blank to keep current password' : 'Enter a strong password'" />
+            @if(!$user)
+                <flux:input wire:model="password" type="password" label="Password" placeholder="Enter a strong password" />
+            @endif
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <flux:button href="{{ route('admin.users.index') }}" variant="ghost">Cancel</flux:button>

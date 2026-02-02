@@ -12,7 +12,14 @@ new class extends Component {
     {
         $this->clinic_name = Setting::where('key', 'clinic_name')->first()?->value ?? 'UK UiTM Management System';
         $this->operating_hours = Setting::where('key', 'operating_hours')->first()?->value ?? '8:00 AM - 5:00 PM';
-        $this->maintenance_mode = (bool) (Setting::where('key', 'maintenance_mode')->first()?->value ?? false);
+        
+        // Check maintenance mode from file first, then fallback to database
+        $maintenanceFile = storage_path('framework/maintenance.json');
+        if (file_exists($maintenanceFile)) {
+            $this->maintenance_mode = true;
+        } else {
+            $this->maintenance_mode = (bool) (Setting::where('key', 'maintenance_mode')->first()?->value ?? false);
+        }
     }
 
     public function save()
@@ -25,6 +32,16 @@ new class extends Component {
         Setting::updateOrCreate(['key' => 'clinic_name'], ['value' => $this->clinic_name, 'type' => 'string']);
         Setting::updateOrCreate(['key' => 'operating_hours'], ['value' => $this->operating_hours, 'type' => 'string']);
         Setting::updateOrCreate(['key' => 'maintenance_mode'], ['value' => $this->maintenance_mode, 'type' => 'boolean']);
+
+        // Update maintenance mode file
+        $maintenanceFile = storage_path('framework/maintenance.json');
+        if ($this->maintenance_mode) {
+            file_put_contents($maintenanceFile, json_encode(['enabled' => true, 'time' => now()->timestamp]));
+        } else {
+            if (file_exists($maintenanceFile)) {
+                unlink($maintenanceFile);
+            }
+        }
 
         // Log action
         \App\Models\AuditLog::create([

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Doctor;
 use App\Models\Department;
 use App\Models\Position;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class DoctorFactory extends Factory
@@ -13,12 +14,19 @@ class DoctorFactory extends Factory
 
   public function definition(): array
   {
+    $email = $this->faker->unique()->safeEmail();
+    $name = $this->faker->name('male');
+
     return [
-      'doctor_name' => $this->faker->name('male'),
+      'user_id' => User::factory()->create([
+        'email' => $email,
+        'name' => $name,
+      ])->id,
+      'doctor_name' => $name,
       'doctor_gender' => $this->faker->randomElement(['M', 'F']),
       'doctor_dob' => $this->faker->date(),
       'doctor_hp' => $this->faker->phoneNumber(),
-      'doctor_email' => $this->faker->unique()->safeEmail(),
+      'doctor_email' => $email,
       'position_id' => Position::factory(),
       'dept_id' => Department::factory(),
       'supervisor_id' => null,

@@ -8,32 +8,58 @@ use App\Models\Medication;
 new class extends Component {
     public $search = '';
     public $results = [];
+    public $debug = '';
 
-    public function updatedSearch()
+    public function performSearch()
     {
-        if (strlen($this->search) < 2) {
+        $term = trim((string) $this->search);
+
+        if (mb_strlen($term) < 2) {
             $this->results = [];
             return;
         }
 
-        $patients = Patient::where('student_id', 'like', "%{$this->search}%")
-            ->orWhere('ic_number', 'like', "%{$this->search}%")
-            ->orWhere('patient_name', 'like', "%{$this->search}%")
-            ->take(5)
+        $patients = Patient::query()
+            ->whereRaw('LOWER(patient_name) LIKE ?', ['%' . mb_strtolower($term) . '%'])
+            ->orWhereRaw('LOWER(student_id) LIKE ?', ['%' . mb_strtolower($term) . '%'])
+            ->orWhereRaw('LOWER(ic_number) LIKE ?', ['%' . mb_strtolower($term) . '%'])
+            ->limit(5)
             ->get()
-            ->map(fn($p) => ['type' => 'Patient', 'title' => $p->patient_name, 'sub' => $p->student_id ?? $p->ic_number, 'route' => route('patients.show', $p->patient_id)]);
+            ->map(fn($p) => [
+                'type' => 'Patient',
+                'title' => $p->patient_name,
+                'sub' => $p->student_id ?? $p->ic_number ?? ('ID: ' . $p->patient_id),
+                'route' => route('patients.show', $p->patient_id),
+            ]);
 
-        $doctors = Doctor::where('doctor_name', 'like', "%{$this->search}%")
-            ->take(5)
+        $doctors = Doctor::query()
+            ->whereRaw('LOWER(doctor_name) LIKE ?', ['%' . mb_strtolower($term) . '%'])
+            ->limit(5)
             ->get()
-            ->map(fn($d) => ['type' => 'Doctor', 'title' => $d->doctor_name, 'sub' => 'ID: ' . $d->doctor_id, 'route' => '#']);
+            ->map(fn($d) => [
+                'type' => 'Doctor',
+                'title' => $d->doctor_name,
+                'sub' => 'ID: ' . $d->doctor_id,
+                'route' => '#',
+            ]);
 
-        $meds = Medication::where('meds_name', 'like', "%{$this->search}%")
-            ->take(5)
+        $meds = Medication::query()
+            ->whereRaw('LOWER(meds_name) LIKE ?', ['%' . mb_strtolower($term) . '%'])
+            ->limit(5)
             ->get()
-            ->map(fn($m) => ['type' => 'Medication', 'title' => $m->meds_name, 'sub' => $m->stock_quantity . ' in stock', 'route' => route('inventory.mex.index')]);
+            ->map(fn($m) => [
+                'type' => 'Medication',
+                'title' => $m->meds_name,
+                'sub' => $m->meds_type ?? 'Medication',
+                'route' => route('inventory.mex.index'),
+            ]);
 
         $this->results = $patients->concat($doctors)->concat($meds)->toArray();
+    }
+
+    public function testClick()
+    {
+        $this->debug = 'Livewire click works at ' . now()->format('H:i:s');
     }
 };
 ?>
@@ -59,8 +85,29 @@ new class extends Component {
                 <flux:subheading>Search for patients, doctors, or medications.</flux:subheading>
             </div>
 
-            <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" placeholder="Type to search..."
-                autofocus />
+            <form wire:submit.prevent="performSearch" class="flex items-stretch gap-2">
+                <div class="relative flex-1">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <flux:icon.magnifying-glass variant="outline" class="w-4 h-4 text-zinc-400" />
+                    </div>
+                    <input
+                        type="text"
+                        wire:model.defer="search"
+                        placeholder="Type to search..."
+                        autofocus
+                        class="w-full pl-10 pr-3 py-2 text-sm bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                    />
+                </div>
+                <flux:button type="submit" variant="primary" class="whitespace-nowrap" wire:click="performSearch">
+                    Search
+                </flux:button>
+            </form>
+            @if($debug)
+                <div class="text-xs text-green-600 bg-green-50 p-2 rounded">
+                    {{ $debug }}
+                </div>
+            @endif
+            <flux:button wire:click="testClick" variant="ghost" size="sm">Test Livewire Click</flux:button>
 
             <div class="max-h-[60vh] overflow-y-auto space-y-2 p-1">
                 @if(!empty($results))
