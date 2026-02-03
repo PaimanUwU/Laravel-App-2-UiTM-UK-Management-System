@@ -28,6 +28,19 @@ new class extends Component {
             $query->where('doctor_id', $doctor->doctor_id);
         }
 
+        // Appointment status breakdown for pie chart (Oracle-compatible)
+        $statusQuery = Appointment::query();
+        if ($doctor) {
+            $statusQuery->where('doctor_id', $doctor->doctor_id);
+        }
+        
+        $appointmentsByStatus = $statusQuery
+            ->selectRaw('appt_status, COUNT(*) as count')
+            ->groupBy('appt_status')
+            ->get()
+            ->pluck('count', 'appt_status')
+            ->toArray();
+
         return [
             'todayAppointments' => (clone $query)
                 ->where('appt_date', $today)
@@ -39,6 +52,7 @@ new class extends Component {
                 ->orderBy('appt_date')
                 ->orderBy('appt_time')
                 ->get(),
+            'appointmentsByStatus' => $appointmentsByStatus,
         ];
     }
 };
@@ -56,6 +70,23 @@ new class extends Component {
             </flux:button>
         </div>
     </div>
+
+    <!-- Appointment Status Overview -->
+    @if(!empty($appointmentsByStatus))
+        <section class="mb-8">
+            <div class="bg-white border border-gray-100 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Appointment Status Overview</h2>
+                        <p class="text-sm text-gray-500 font-medium">Distribution of all appointments by status</p>
+                    </div>
+                </div>
+                <div class="relative h-64 flex items-center justify-center">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </section>
+    @endif
 
     <!-- Today's Appointments -->
     <section class="space-y-4 mb-4">
@@ -183,3 +214,109 @@ new class extends Component {
         @endif
     </section>
 </div>
+
+@if(!empty($appointmentsByStatus))
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            function initStatusChart() {
+                const ctx = document.getElementById('statusChart');
+                
+                if (!ctx) {
+                    console.error('Status chart canvas not found');
+                    return;
+                }
+
+                if (typeof Chart === 'undefined') {
+                    console.error('Chart.js not loaded');
+                    return;
+                }
+
+                // Destroy existing chart if it exists
+                const existingChart = Chart.getChart(ctx);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+
+                const statusData = @json($appointmentsByStatus);
+                const labels = Object.keys(statusData);
+                const data = Object.values(statusData);
+
+                // Define colors for different statuses
+                const colorMap = {
+                    'PENDING': 'rgba(251, 191, 36, 0.8)',      // Amber
+                    'SCHEDULED': 'rgba(59, 130, 246, 0.8)',    // Blue
+                    'CONFIRMED': 'rgba(34, 197, 94, 0.8)',     // Green
+                    'COMPLETED': 'rgba(16, 185, 129, 0.8)',    // Emerald
+                    'CANCELLED': 'rgba(239, 68, 68, 0.8)',     // Red
+                    'ARRIVED': 'rgba(249, 115, 22, 0.8)',      // Orange
+                    'DISCHARGED': 'rgba(107, 114, 128, 0.8)',  // Gray
+                };
+
+                const backgroundColors = labels.map(label => 
+                    colorMap[label.toUpperCase()] || 'rgba(156, 163, 175, 0.8)'
+                );
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: backgroundColors,
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    padding: 15,
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                initStatusChart();
+                setTimeout(initStatusChart, 100);
+            });
+
+            // Re-initialize on Livewire updates
+            document.addEventListener('livewire:navigated', initStatusChart);
+
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('morph.updated', ({ component }) => {
+                    setTimeout(initStatusChart, 100);
+                });
+            }
+        </script>
+    @endpush
+@endif

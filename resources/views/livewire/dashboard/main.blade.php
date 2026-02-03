@@ -30,6 +30,55 @@ new class extends Component {
     return $this->getCurrentDoctor() !== null;
   }
 
+  private function calculateTrendData($user)
+  {
+    $endDate = Carbon::today();
+    $startDate = $endDate->copy()->subDays(29); // 30 days total including today
+
+    $dates = [];
+    $appointmentsData = [];
+    $patientsData = [];
+
+    for ($date = $startDate->copy(); $date <= $endDate; $date->addDay()) {
+      $dateStr = $date->format('Y-m-d');
+      $dates[] = $date->format('M j');
+
+      // Calculate appointments based on user role
+      if ($user->hasRole('system_admin')) {
+        $appointmentsCount = Appointment::whereDate('appt_date', $dateStr)->count();
+      } elseif ($user->hasRole('doctor') && $user->doctor) {
+        $appointmentsCount = Appointment::where('doctor_ID', $user->doctor->doctor_id)
+          ->whereDate('appt_date', $dateStr)->count();
+      } else {
+        $appointmentsCount = 0;
+      }
+
+      // Calculate unique patients based on user role - Fixed for Oracle compatibility
+      if ($user->hasRole('system_admin')) {
+        $patientsCount = Appointment::whereDate('appt_date', $dateStr)
+          ->selectRaw('COUNT(DISTINCT patient_ID) as count')
+          ->value('count') ?? 0;
+      } elseif ($user->hasRole('doctor') && $user->doctor) {
+        $patientsCount = Appointment::where('doctor_ID', $user->doctor->doctor_id)
+          ->whereDate('appt_date', $dateStr)
+          ->selectRaw('COUNT(DISTINCT patient_ID) as count')
+          ->value('count') ?? 0;
+      } else {
+        $patientsCount = 0;
+      }
+
+      $appointmentsData[] = $appointmentsCount;
+      $patientsData[] = $patientsCount;
+    }
+
+    return [
+      'dates' => $dates,
+      'appointments' => $appointmentsData,
+      'patients' => $patientsData,
+    ];
+  }
+
+
   public function confirmAppointment(int $apptId = null)
   {
     if ($apptId === null) {
@@ -47,10 +96,10 @@ new class extends Component {
     $appt = Appointment::find($apptId);
 
     // Allow if assigned to me OR if unassigned (I am claiming it)
-    if ($appt && ($appt->doctor_id == $doctor->doctor_id || is_null($appt->doctor_id))) {
+    if ($appt && ($appt->doctor_ID == $doctor->doctor_id || is_null($appt->doctor_ID))) {
       $appt->update([
         'appt_status' => 'CONFIRMED',
-        'doctor_id' => $doctor->doctor_id // Assign to me
+        'doctor_ID' => $doctor->doctor_id // Assign to me
       ]);
       $this->dispatch('appointment-confirmed'); // Optional: for notifications
     }
@@ -67,15 +116,19 @@ new class extends Component {
     if ($isPatient) {
       // Check if patient profile exists, otherwise maybe show incomplete state?
       // For now, let the component handle it or fail, but ensuring routing is correct.
-      return ['isPatient' => true];
+      return ['isPatient' => true, 'isAdmin' => false];
     }
 
+    // Calculate 30-day trend data
+    $trendData = $this->calculateTrendData($user);
+
     $isDoctor = $user->hasRole('doctor');
+    $isAdmin = $user->hasRole('system_admin');
     $doctor = $isDoctor ? $user->doctor : null;
 
     if ($isDoctor && $doctor) {
       $todayAppointments = Appointment::with(['patient', 'doctor'])
-        ->where('doctor_id', $doctor->doctor_id)
+        ->where('doctor_ID', $doctor->doctor_id)
         ->whereDate('appt_date', Carbon::today())
         ->orderBy('appt_time')
         ->get();
@@ -84,17 +137,17 @@ new class extends Component {
       // Show if: Doctor ID matches OR Doctor ID is NULL (Pool)
       $incomingRequests = Appointment::with(['patient', 'doctor'])
         ->where(function ($query) use ($doctor) {
-          $query->where('doctor_id', $doctor->doctor_id)
-            ->orWhereNull('doctor_id');
+          $query->where('doctor_ID', $doctor->doctor_id)
+            ->orWhereNull('doctor_ID');
         })
         ->whereIn('appt_status', ['PENDING', 'Pending', 'scheduled', 'Scheduled'])
         ->orderBy('appt_date')
         ->orderBy('appt_time')
         ->get();
 
-      $totalPatients = Appointment::where('doctor_id', $doctor->doctor_id)
-        ->distinct('patient_id')
-        ->count('patient_id');
+      $totalPatients = Appointment::where('doctor_ID', $doctor->doctor_id)
+        ->selectRaw('COUNT(DISTINCT patient_ID) as count')
+        ->value('count') ?? 0;
 
       // Changed to single supervisee
       $supervisee = $doctor->supervisees()->with(['user', 'department', 'position'])->first();
@@ -103,7 +156,7 @@ new class extends Component {
       $recentConsultations = collect();
       if ($supervisee) {
         $recentConsultations = Appointment::with(['doctor', 'patient'])
-          ->where('doctor_id', $supervisee->doctor_id)
+          ->where('doctor_ID', $supervisee->doctor_id)
           ->whereIn('appt_status', ['Completed', 'Consulting', 'completed', 'consulting'])
           ->latest('updated_at')
           ->take(5)
@@ -113,6 +166,7 @@ new class extends Component {
       return [
         'isPatient' => false,
         'isDoctor' => true,
+        'isAdmin' => $isAdmin,
         'doctor' => $doctor,
         'totalPatients' => $totalPatients,
         'todayAppointmentsCount' => $todayAppointments->count(),
@@ -121,6 +175,7 @@ new class extends Component {
         'upcomingAppointments' => $incomingRequests, // Replacing Upcoming Arrivals with Incoming Requests as per user intent
         'supervisee' => $supervisee, // Passed as single object or null
         'recentTeamActivity' => $recentConsultations,
+        'trendData' => $trendData,
       ];
     }
 
@@ -128,6 +183,7 @@ new class extends Component {
     return [
       'isPatient' => false,
       'isDoctor' => false,
+      'isAdmin' => $isAdmin,
       'totalPatients' => Patient::count(),
       'todayAppointmentsCount' => Appointment::whereDate('appt_date', Carbon::today())->count(),
       'pendingAppointmentsCount' => Appointment::where('appt_status', 'scheduled')->count(),
@@ -143,6 +199,7 @@ new class extends Component {
         ->get(),
       'supervisee' => null,
       'recentTeamActivity' => collect(),
+      'trendData' => $trendData,
     ];
   }
 }; ?>
@@ -152,7 +209,6 @@ new class extends Component {
     <livewire:patient.patient-dashboard />
   @else
     <div class="space-y-6">
-      @if($isDoctor)
         {{-- <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <strong class="font-bold">DEBUG MODE:</strong>
           <span class="block sm:inline">Role: Doctor | Supervisee Found:
@@ -162,18 +218,55 @@ new class extends Component {
         <div class="flex items-center justify-between">
           <div>
             <h1 class="text-3xl font-black text-gray-900 tracking-tight">My Dashboard</h1>
-            <p class="text-gray-500 font-medium">Welcome back, Dr. {{ explode(' ', auth()->user()->name)[0] }}</p>
-          </div>
+            @if($isAdmin)
+            <p class="text-gray-500 font-medium">Welcome back, {{ explode(' ', auth()->user()->name)[0] }}</p>
+            @elseif($isDoctor)
+            <p class="text-gray-500 font-medium">Welcome back, {{ explode(' ', auth()->user()->name)[0] }}</p>
+            @endif
+            </div>
           <div class="flex items-center gap-2">
+
+          @if($isAdmin)
+            <flux:badge color="blue" variant="solid" class="uppercase tracking-widest font-bold">Admin Account</flux:badge>
+            @elseif($isDoctor)
             <flux:badge color="blue" variant="solid" class="uppercase tracking-widest font-bold">Doctor Account</flux:badge>
+            @endif
           </div>
         </div>
-      @endif
 
       <!-- MAIN DASHBOARD CONTENT (Bento Grid) -->
       <div class="flex flex-col w-full gap-4">
         <!-- (Existing Bento Grid content remains similar, just ensuring correct variables are used) -->
         <div class="flex flex-col w-full gap-4">
+            @if($isDoctor || $isAdmin)
+            <!-- 30-Day Trend Chart -->
+            <div class="w-full mt-4">
+              <div class="bg-white border border-gray-100 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 class="text-lg font-bold text-gray-900">30-Day Activity Trend</h3>
+                    <p class="text-sm text-gray-500 font-medium">
+                      {{ $isDoctor ? 'Your' : 'System-wide' }} appointment and patient activity
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-gray-600">Appointments</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                      <span class="text-xs font-medium text-gray-600">Patients</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="relative h-64">
+                  <canvas id="trendChart"></canvas>
+                </div>
+              </div>
+            </div>
+            @endif
+
           <div class="flex flex-row w-full gap-4">
             <!-- Total Patients -->
             <div
@@ -396,7 +489,7 @@ new class extends Component {
                         </td>
                         @if($isDoctor)
                           <td class="px-3 py-3 whitespace-nowrap text-right">
-                             <flux:button size="xs" href="{{ route('patients.show', ['patient' => $appointment->patient_id, 'tab' => 'consultation', 'appt_id' => $appointment->appt_id]) }}" icon="clipboard-document-check" variant="primary">Consult</flux:button>
+                             <flux:button size="xs" href="{{ route('patients.show', ['patient' => $appointment->patient_ID, 'tab' => 'consultation', 'appt_id' => $appointment->appt_ID]) }}" icon="clipboard-document-check" variant="primary">Consult</flux:button>
                           </td>
                         @endif
                       </tr>
@@ -479,3 +572,172 @@ new class extends Component {
     </div>
   @endif
 </div>
+
+@if($isDoctor || $isAdmin)
+  @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+      function initTrendChart() {
+        console.log('=== initTrendChart called ===');
+        const ctx = document.getElementById('trendChart');
+
+        if (!ctx) {
+          console.error('Chart canvas not found');
+          return;
+        }
+        console.log('Canvas element found:', ctx);
+
+        if (typeof Chart === 'undefined') {
+          console.error('Chart.js not loaded');
+          return;
+        }
+        console.log('Chart.js is loaded');
+
+        // Destroy existing chart if it exists
+        const existingChart = Chart.getChart(ctx);
+        if (existingChart) {
+          console.log('Destroying existing chart');
+          existingChart.destroy();
+        }
+
+        const trendData = @json($trendData);
+        console.log('Chart data received:', trendData);
+        console.log('Data structure check:', {
+          hasDates: !!trendData?.dates,
+          hasAppointments: !!trendData?.appointments,
+          hasPatients: !!trendData?.patients,
+          datesLength: trendData?.dates?.length,
+          appointmentsLength: trendData?.appointments?.length,
+          patientsLength: trendData?.patients?.length
+        });
+        
+        // Check if data exists and has valid structure
+        if (!trendData || !trendData.dates || !trendData.appointments || !trendData.patients) {
+          console.error('Invalid trend data structure:', trendData);
+          return;
+        }
+        
+        console.log('Dates:', trendData.dates);
+        console.log('Appointments:', trendData.appointments);
+        console.log('Patients:', trendData.patients);
+
+        // Calculate max values for scaling
+        const maxAppointments = Math.max(...trendData.appointments, 1);
+        const maxPatients = Math.max(...trendData.patients, 1);
+        const maxValue = Math.max(maxAppointments, maxPatients, 5); // At least 5 for scale
+
+        console.log('Creating chart with max value:', maxValue);
+
+        try {
+          const newChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: trendData.dates,
+              datasets: [
+                {
+                  label: 'Appointments',
+                  data: trendData.appointments,
+                  borderColor: 'rgb(59, 130, 246)',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  tension: 0.3,
+                  fill: true,
+                  pointRadius: 3,
+                  pointHoverRadius: 5,
+                  borderWidth: 2
+                },
+                {
+                  label: 'Patients',
+                  data: trendData.patients,
+                  borderColor: 'rgb(16, 185, 129)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  tension: 0.3,
+                  fill: true,
+                  pointRadius: 3,
+                  pointHoverRadius: 5,
+                  borderWidth: 2
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  display: false
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  padding: 12,
+                  titleColor: '#fff',
+                  bodyColor: '#fff',
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                  borderWidth: 1,
+                  displayColors: true,
+                  intersect: false,
+                  mode: 'index'
+                }
+              },
+              scales: {
+                x: {
+                  grid: {
+                    display: false
+                  },
+                  ticks: {
+                    color: '#6b7280',
+                    font: {
+                      size: 11
+                    },
+                    maxRotation: 45,
+                    minRotation: 45
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  suggestedMax: maxValue,
+                  grid: {
+                    color: 'rgba(0, 0, 0, 0.05)'
+                  },
+                  ticks: {
+                    color: '#6b7280',
+                    font: {
+                      size: 11
+                    },
+                    stepSize: 1
+                  }
+                }
+              },
+              interaction: {
+                intersect: false,
+                mode: 'index'
+              }
+            }
+          });
+          console.log('Chart created successfully:', newChart);
+        } catch (error) {
+          console.error('Error creating chart:', error);
+        }
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        initTrendChart();
+        // Also try to initialize after a short delay to ensure DOM is ready
+        setTimeout(initTrendChart, 500);
+      });
+
+      // Re-initialize on Livewire updates
+      document.addEventListener('livewire:navigated', initTrendChart);
+
+      // Handle Livewire component updates
+      if (typeof Livewire !== 'undefined') {
+        Livewire.hook('morph.updated', ({ component }) => {
+          setTimeout(initTrendChart, 100);
+        });
+        
+        Livewire.hook('component.initialized', ({ component }) => {
+          setTimeout(initTrendChart, 100);
+        });
+      }
+    </script>
+  @endpush
+@endif

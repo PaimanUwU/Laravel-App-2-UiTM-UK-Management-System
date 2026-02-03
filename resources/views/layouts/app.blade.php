@@ -60,9 +60,9 @@
 
             <main class="flex-1 overflow-y-auto p-4 lg:p-8 ">
                 {{-- @isset($header)
-                    <div class="mb-8">
-                        {{ $header }}
-                    </div>
+                <div class="mb-8">
+                    {{ $header }}
+                </div>
                 @endisset --}}
 
                 {{ $slot }}
@@ -70,6 +70,7 @@
         </div>
     </div>
 
+    @stack('scripts')
     @fluxScripts
 </body>
 

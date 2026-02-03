@@ -24,8 +24,17 @@ new class extends Component {
                 ->orWhere('student_id', 'like', '%' . $this->search . '%');
         }
 
+        // Patient type breakdown for pie chart (Oracle-compatible)
+        $patientsByType = Patient::selectRaw('patient_type, COUNT(*) as count')
+            ->whereNotNull('patient_type')
+            ->groupBy('patient_type')
+            ->get()
+            ->pluck('count', 'patient_type')
+            ->toArray();
+
         return [
             'patients' => $query->latest('patient_id')->paginate(10),
+            'patientsByType' => $patientsByType,
         ];
     }
 };
@@ -50,6 +59,23 @@ new class extends Component {
                 icon="magnifying-glass" />
         </div>
     </div>
+
+    <!-- Patient Type Overview -->
+    @if(!empty($patientsByType))
+        <section class="mb-6">
+            <div class="bg-white border border-gray-100 rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Patient Type Distribution</h2>
+                        <p class="text-sm text-gray-500 font-medium">Student vs Staff breakdown</p>
+                    </div>
+                </div>
+                <div class="relative h-64 flex items-center justify-center">
+                    <canvas id="patientTypeChart"></canvas>
+                </div>
+            </div>
+        </section>
+    @endif
 
     <div class="bg-white overflow-hidden shadow sm:rounded-lg">
         <table class="min-w-full divide-y divide-gray-300">
