@@ -15,18 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
-            RolesAndPermissionsSeeder::class,
-            TestSeeder::class,
-        ]);
+        $this->call([RolesAndPermissionsSeeder::class]);
 
         // Create an Admin user
         $admin = User::factory()->create([
-            'name' => 'System Admin',
-            'email' => 'admin@uitm.edu.my',
-            'password' => bcrypt('asdfasdf'),
+            "name" => "System Admin",
+            "email" => "admin@uitm.edu.my",
+            "password" => bcrypt("asdfasdf"),
         ]);
-        $admin->assignRole('system_admin');
+        $admin->assignRole("system_admin");
 
         // Create a Test User
         // User::factory()->create([
