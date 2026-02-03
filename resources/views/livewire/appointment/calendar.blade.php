@@ -33,7 +33,7 @@ new class extends Component {
         if ($doctor) {
             $statusQuery->where('doctor_id', $doctor->doctor_id);
         }
-        
+
         $appointmentsByStatus = $statusQuery
             ->selectRaw('appt_status, COUNT(*) as count')
             ->groupBy('appt_status')
@@ -48,7 +48,7 @@ new class extends Component {
                 ->get(),
             'monthAppointments' => Appointment::with(['patient', 'doctor'])
                 ->whereBetween('appt_date', [$today, $next30Days])
-                ->whereIn('appt_status', ['PENDING', 'Pending', 'Scheduled', 'scheduled'])
+                ->whereIn('appt_status', ['PENDING'])
                 ->orderBy('appt_date')
                 ->orderBy('appt_time')
                 ->get(),
@@ -221,7 +221,7 @@ new class extends Component {
         <script>
             function initStatusChart() {
                 const ctx = document.getElementById('statusChart');
-                
+
                 if (!ctx) {
                     console.error('Status chart canvas not found');
                     return;
@@ -245,15 +245,13 @@ new class extends Component {
                 // Define colors for different statuses
                 const colorMap = {
                     'PENDING': 'rgba(251, 191, 36, 0.8)',      // Amber
-                    'SCHEDULED': 'rgba(59, 130, 246, 0.8)',    // Blue
-                    'CONFIRMED': 'rgba(34, 197, 94, 0.8)',     // Green
-                    'COMPLETED': 'rgba(16, 185, 129, 0.8)',    // Emerald
-                    'CANCELLED': 'rgba(239, 68, 68, 0.8)',     // Red
-                    'ARRIVED': 'rgba(249, 115, 22, 0.8)',      // Orange
-                    'DISCHARGED': 'rgba(107, 114, 128, 0.8)',  // Gray
+                    'FOLLOW_UP': 'rgba(59, 130, 246, 0.8)',    // Blue
+                    'DISCHARGED': 'rgba(34, 197, 94, 0.8)',     // Green
+                    'CANCEL': 'rgba(239, 68, 68, 0.8)',     // Red
+                    'ASSIGNED': 'rgba(249, 115, 22, 0.8)',      // Orange
                 };
 
-                const backgroundColors = labels.map(label => 
+                const backgroundColors = labels.map(label =>
                     colorMap[label.toUpperCase()] || 'rgba(156, 163, 175, 0.8)'
                 );
 

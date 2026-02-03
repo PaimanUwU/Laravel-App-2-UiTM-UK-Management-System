@@ -121,7 +121,7 @@ new class extends Component {
         <p class="text-sm text-gray-600">Schedule a consultation session.</p>
     </div>
 
-    <flux:card>
+    <flux:card class="p-4">
         <form wire:submit="save" class="space-y-6">
 
             <flux:select wire:model="patient_id" label="Patient" placeholder="Select Patient" searchable>

@@ -135,3 +135,83 @@ new class extends Component {
         </div>
     </div>
 </div>
+
+@if(!empty($patientsByType))
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            function initPatientTypeChart() {
+                const ctx = document.getElementById('patientTypeChart');
+                if (!ctx) return;
+                if (typeof Chart === 'undefined') return;
+
+                const existingChart = Chart.getChart(ctx);
+                if (existingChart) existingChart.destroy();
+
+                const typeData = @json($patientsByType);
+                const labels = Object.keys(typeData);
+                const data = Object.values(typeData);
+
+                const colorMap = {
+                    'STUDENT': 'rgba(59, 130, 246, 0.8)',
+                    'STAFF': 'rgba(168, 85, 247, 0.8)',
+                };
+
+                const backgroundColors = labels.map(label =>
+                    colorMap[label.toUpperCase()] || 'rgba(156, 163, 175, 0.8)'
+                );
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: backgroundColors,
+                            borderWidth: 2,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { padding: 15, font: { size: 12 } }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                callbacks: {
+                                    label: function (context) {
+                                        const label = context.label || '';
+                                        const value = context.parsed || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                initPatientTypeChart();
+                setTimeout(initPatientTypeChart, 100);
+            });
+
+            document.addEventListener('livewire:navigated', initPatientTypeChart);
+
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('morph.updated', ({ component }) => {
+                    setTimeout(initPatientTypeChart, 100);
+                });
+            }
+        </script>
+    @endpush
+@endif

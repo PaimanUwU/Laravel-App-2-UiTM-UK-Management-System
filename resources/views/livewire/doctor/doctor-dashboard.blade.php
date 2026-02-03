@@ -216,7 +216,7 @@ new class extends Component {
             'queue' => Appointment::with('patient')
                 ->where('doctor_id', $currentDoctor->doctor_id) // FIXED: attribute + column match
                 ->where('appt_date', now()->format('Y-m-d'))
-                ->whereIn('appt_status', ['CONFIRMED', 'Confirmed', 'ARRIVED', 'Arrived', 'CONSULTING', 'Consulting', 'PENDING', 'Pending'])
+                ->whereIn('appt_status', ['ASSIGNED', 'DISCHARGED', 'FOLLOW_UP', 'CANCEL'])
                 ->orderBy('appt_time')
                 ->get(),
         ];
@@ -238,7 +238,7 @@ new class extends Component {
             $superviseeIds = $supervisees->pluck('doctor_id'); // FIXED
             $query = Appointment::with(['doctor', 'patient'])
                 ->whereIn('doctor_id', $superviseeIds)
-                ->whereIn('appt_status', ['Completed', 'Consulting', 'completed', 'consulting']);
+                ->whereIn('appt_status', ['ASSIGNED', 'DISCHARGED', 'FOLLOW_UP', 'CANCEL']);
 
             $data['recentConsultations'] = $query->latest('updated_at')
                 ->take(10)
@@ -476,7 +476,7 @@ new class extends Component {
                                         <div>
                                             <p class="text-sm text-gray-900 group-hover/item:text-blue-600 transition-colors">
                                                 <span class="font-bold">Dr. {{ $activity->doctor->doctor_name }}</span>
-                                                {{ in_array(strtolower($activity->appt_status), ['completed']) ? 'completed' : 'is consulting' }}
+                                                {{ in_array(strtolower($activity->appt_status), ['DISCHARGED']) ? 'discharged' : 'working' }}
                                                 <span class="font-bold">{{ $activity->patient->patient_name }}</span>
                                             </p>
                                             <p class="text-xs text-gray-500 mt-1">{{ $activity->updated_at ? \Carbon\Carbon::parse($activity->updated_at)->diffForHumans() : 'Unknown time' }}</p>

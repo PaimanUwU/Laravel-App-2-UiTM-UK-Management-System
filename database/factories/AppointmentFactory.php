@@ -9,18 +9,26 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AppointmentFactory extends Factory
 {
-  protected $model = Appointment::class;
+    protected $model = Appointment::class;
 
-  public function definition(): array
-  {
-    return [
-      'appt_date' => $this->faker->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d'),
-      'appt_time' => $this->faker->time('h:i A'),
-      'appt_status' => $this->faker->randomElement(['Scheduled', 'Completed', 'Cancelled']),
-      'appt_payment' => $this->faker->randomFloat(2, 0, 100),
-      'appt_note' => $this->faker->sentence(),
-      'patient_id' => Patient::factory(),
-      'doctor_id' => Doctor::factory(),
-    ];
-  }
+    public function definition(): array
+    {
+        return [
+            "appt_date" => $this->faker
+                ->dateTimeBetween("-1 month", "+1 month")
+                ->format("Y-m-d"),
+            "appt_time" => $this->faker->time("h:i A"),
+            "appt_status" => $this->faker->randomElement([
+                "PENDING",
+                "ASSIGNED",
+                "CANCEL",
+                "FOLLOW_UP",
+                "DISCHARGED",
+            ]),
+            "appt_payment" => $this->faker->randomFloat(2, 0, 100),
+            "appt_note" => $this->faker->sentence(),
+            "patient_id" => Patient::factory(),
+            "doctor_id" => Doctor::factory(),
+        ];
+    }
 }
