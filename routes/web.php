@@ -125,6 +125,14 @@ Route::middleware(["auth", "verified"])->group(function () {
         });
 
     // Doctor Index
+    Route::middleware(["role:system_admin|doctor"])
+        ->prefix("doctors")
+        ->name("doctors.")
+        ->group(function () {
+            \Livewire\Volt\Volt::route("/", "doctor.doctor-index")->name(
+                "index",
+            );
+        });
 
     // Head Office
     Route::middleware(["role:head_office"])

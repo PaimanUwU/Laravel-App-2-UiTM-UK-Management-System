@@ -27,6 +27,11 @@
                     <flux:icon.users variant="outline" class="w-5 h-5 mr-3" />
                     {{ __('Patients') }}
                 </a>
+                <a href="{{ route('doctors.index') }}"
+                    class="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors {{ request()->routeIs('doctors.*') ? 'bg-accent/10 text-accent' : 'text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900' }}">
+                    <flux:icon.user-group variant="outline" class="w-5 h-5 mr-3" />
+                    {{ __('Doctors') }}
+                </a>
                 @endrole
 
                 @role('system_admin|head_office|staff')

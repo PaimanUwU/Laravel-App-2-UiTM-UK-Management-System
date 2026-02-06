@@ -83,8 +83,7 @@ new class extends Component {
                 <tr>
                     <th scope="col" class="py-4 pl-12 pr-3 text-left text-sm font-semibold text-gray-900">Name
                     </th>
-                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Identity
-                        (IC/Student)</th>
+                    <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">(Student/Staff ID)</th>
                     <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Type</th>
                     <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Contact</th>
                     <th scope="col" class="relative py-4 pl-3 pr-12">

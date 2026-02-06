@@ -254,10 +254,6 @@ new class extends Component {
                       <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
                       <span class="text-xs font-medium text-gray-600">Appointments</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <div class="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                      <span class="text-xs font-medium text-gray-600">Patients</span>
-                    </div>
                   </div>
                 </div>
                 <div class="relative h-64">
@@ -610,13 +606,13 @@ new class extends Component {
           appointmentsLength: trendData?.appointments?.length,
           patientsLength: trendData?.patients?.length
         });
-        
+
         // Check if data exists and has valid structure
         if (!trendData || !trendData.dates || !trendData.appointments || !trendData.patients) {
           console.error('Invalid trend data structure:', trendData);
           return;
         }
-        
+
         console.log('Dates:', trendData.dates);
         console.log('Appointments:', trendData.appointments);
         console.log('Patients:', trendData.patients);
@@ -644,18 +640,18 @@ new class extends Component {
                   pointRadius: 3,
                   pointHoverRadius: 5,
                   borderWidth: 2
-                },
-                {
-                  label: 'Patients',
-                  data: trendData.patients,
-                  borderColor: 'rgb(16, 185, 129)',
-                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                  tension: 0.3,
-                  fill: true,
-                  pointRadius: 3,
-                  pointHoverRadius: 5,
-                  borderWidth: 2
                 }
+                // {
+                //   label: 'Patients',
+                //   data: trendData.patients,
+                //   borderColor: 'rgb(16, 185, 129)',
+                //   backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                //   tension: 0.3,
+                //   fill: true,
+                //   pointRadius: 3,
+                //   pointHoverRadius: 5,
+                //   borderWidth: 2
+                // }
               ]
             },
             options: {
@@ -733,7 +729,7 @@ new class extends Component {
         Livewire.hook('morph.updated', ({ component }) => {
           setTimeout(initTrendChart, 100);
         });
-        
+
         Livewire.hook('component.initialized', ({ component }) => {
           setTimeout(initTrendChart, 100);
         });
