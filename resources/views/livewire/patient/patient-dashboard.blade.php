@@ -18,7 +18,7 @@ new class extends Component {
   public function mount()
   {
     $user = Auth::user();
-    // Assuming strict one-to-one or valid relation exists. 
+    // Assuming strict one-to-one or valid relation exists.
     // If not, we might need to handle the "profile not created" case.
     $this->patient = $user->patient;
   }
@@ -97,7 +97,7 @@ new class extends Component {
       <!-- Left Column: Status & Request -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Upcoming Appointment -->
-        <flux:card>
+        <flux:card class="p-4">
           <div class="flex items-center gap-3 mb-4">
             <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
               <flux:icon.calendar variant="solid" class="w-6 h-6" />
@@ -137,7 +137,7 @@ new class extends Component {
         </flux:card>
 
         <!-- Medical History -->
-        <flux:card>
+        <flux:card class="p-4">
           <div class="flex items-center justify-between mb-4">
             <h3 class="font-bold text-lg">Medical History</h3>
             <flux:button variant="ghost" size="sm" icon="arrow-right"
@@ -180,7 +180,7 @@ new class extends Component {
 
       <!-- Right Column: Request Form -->
       <div class="lg:col-span-1">
-        <flux:card class="h-full flex flex-col">
+        <flux:card class="p-4 h-full flex flex-col">
           <div class="flex items-center gap-2 mb-6">
             <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg">
               <flux:icon.plus variant="solid" class="w-5 h-5" />

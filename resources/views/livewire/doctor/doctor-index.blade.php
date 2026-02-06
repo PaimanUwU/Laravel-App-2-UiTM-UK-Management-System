@@ -8,15 +8,31 @@ use Illuminate\Support\Facades\DB;
 new class extends Component {
   public function with(): array
   {
-    // Fetch all doctors with their positions, departments, and appointment counts for today
-    $today = now()->format('Y-m-d');
-    $doctors = Doctor::with(['position', 'department'])
-      ->withCount([
-        'appointments as appointments_count' => function ($query) use ($today) {
-          $query->where('appt_date', $today);
+    $user = auth()->user();
+    $isDoctor = $user->hasRole('doctor');
+
+    // Fetch all doctors with their positions, departments, and appointment counts
+    // Doctors see "Today's Workload", Admins see "Overall Workload"
+    $query = Doctor::with(['position', 'department']);
+
+    if ($isDoctor) {
+      $today = now()->format('Y-m-d');
+      $query->withCount([
+        'appointments as appointments_count' => function ($q) use ($today) {
+          $q->where('appt_date', $today);
         }
-      ])
-      ->get();
+      ]);
+      $workloadTitle = "Today's Workload";
+      $workloadDesc = "Comparison of appointments scheduled for today across all doctors.";
+      $headerText = "workload for " . now()->format('d M Y');
+    } else {
+      $query->withCount('appointments');
+      $workloadTitle = "Overall Workload";
+      $workloadDesc = "Comparison of total appointments scheduled across all doctors.";
+      $headerText = "overall workload";
+    }
+
+    $doctors = $query->get();
 
     // Prepare chart data: Doctor Names and their Appointment Counts
     $chartLabels = $doctors->pluck('doctor_name')->toArray();
@@ -36,6 +52,9 @@ new class extends Component {
         'total' => $totalDoctors,
         'active' => $activeDoctors,
       ],
+      'workloadTitle' => $workloadTitle,
+      'workloadDesc' => $workloadDesc,
+      'headerText' => $headerText,
     ];
   }
 };
@@ -45,8 +64,8 @@ new class extends Component {
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Doctors Directory</h1>
-      <p class="text-sm text-gray-600">View all registered doctors and their workload for <span
-          class="font-bold text-teal-600">{{ now()->format('d M Y') }}</span>.</p>
+      <p class="text-sm text-gray-600">View all registered doctors and their <span
+          class="font-bold text-teal-600">{{ $headerText }}</span>.</p>
     </div>
   </div>
 
@@ -80,8 +99,8 @@ new class extends Component {
   <section>
     <flux:card class="p-4">
       <div class="mb-4">
-        <h2 class="text-lg font-bold text-gray-900">Today's Workload</h2>
-        <p class="text-sm text-gray-500">Comparison of appointments scheduled for today across all doctors.</p>
+        <h2 class="text-lg font-bold text-gray-900">{{ $workloadTitle }}</h2>
+        <p class="text-sm text-gray-500">{{ $workloadDesc }}</p>
       </div>
       <div class="relative h-120">
         <canvas id="workloadChart"></canvas>

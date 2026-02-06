@@ -9,12 +9,12 @@ class MedicalCheckup extends Model
 {
   use HasFactory;
 
-  protected $table = 'medical_checkups';
-  protected $primaryKey = 'appt_id';
+  protected $table = 'MEDICAL_CHECKUPS';
+  protected $primaryKey = 'appt_ID';
   public $incrementing = false; // Primary key is foreign key
 
   protected $fillable = [
-    'appt_id',
+    'appt_ID',
     'checkup_symptom',
     'checkup_test',
     'checkup_finding',
@@ -27,6 +27,6 @@ class MedicalCheckup extends Model
 
   public function appointment()
   {
-    return $this->belongsTo(Appointment::class, 'appt_id');
+    return $this->belongsTo(Appointment::class, 'appt_ID');
   }
 }

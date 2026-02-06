@@ -25,7 +25,7 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($roles as $role) {
-            \Spatie\Permission\Models\Role::create(['name' => $role]);
+            \Spatie\Permission\Models\Role::findOrCreate($role);
         }
     }
 }

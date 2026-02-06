@@ -47,7 +47,7 @@ new class extends Component {
       if ($user->hasRole('system_admin')) {
         $appointmentsCount = Appointment::whereDate('appt_date', $dateStr)->count();
       } elseif ($user->hasRole('doctor') && $user->doctor) {
-        $appointmentsCount = Appointment::where('doctor_ID', $user->doctor->doctor_id)
+        $appointmentsCount = Appointment::where('doctor_id', $user->doctor->doctor_id)
           ->whereDate('appt_date', $dateStr)->count();
       } else {
         $appointmentsCount = 0;
@@ -56,12 +56,12 @@ new class extends Component {
       // Calculate unique patients based on user role - Fixed for Oracle compatibility
       if ($user->hasRole('system_admin')) {
         $patientsCount = Appointment::whereDate('appt_date', $dateStr)
-          ->selectRaw('COUNT(DISTINCT patient_ID) as count')
+          ->selectRaw('COUNT(DISTINCT patient_id) as count')
           ->value('count') ?? 0;
       } elseif ($user->hasRole('doctor') && $user->doctor) {
-        $patientsCount = Appointment::where('doctor_ID', $user->doctor->doctor_id)
+        $patientsCount = Appointment::where('doctor_id', $user->doctor->doctor_id)
           ->whereDate('appt_date', $dateStr)
-          ->selectRaw('COUNT(DISTINCT patient_ID) as count')
+          ->selectRaw('COUNT(DISTINCT patient_id) as count')
           ->value('count') ?? 0;
       } else {
         $patientsCount = 0;
@@ -96,10 +96,10 @@ new class extends Component {
     $appt = Appointment::find($apptId);
 
     // Allow if assigned to me OR if unassigned (I am claiming it)
-    if ($appt && ($appt->doctor_ID == $doctor->doctor_id || is_null($appt->doctor_ID))) {
+    if ($appt && ($appt->doctor_id == $doctor->doctor_id || is_null($appt->doctor_id))) {
       $appt->update([
         'appt_status' => 'CONFIRMED',
-        'doctor_ID' => $doctor->doctor_id // Assign to me
+        'doctor_id' => $doctor->doctor_id // Assign to me
       ]);
       $this->dispatch('appointment-confirmed'); // Optional: for notifications
     }
@@ -116,7 +116,12 @@ new class extends Component {
     if ($isPatient) {
       // Check if patient profile exists, otherwise maybe show incomplete state?
       // For now, let the component handle it or fail, but ensuring routing is correct.
-      return ['isPatient' => true, 'isAdmin' => false];
+      return [
+        'isPatient' => true,
+        'isAdmin' => false,
+        'isDoctor' => false,
+        'supervisee' => null,
+      ];
     }
 
     // Calculate 30-day trend data
@@ -128,7 +133,7 @@ new class extends Component {
 
     if ($isDoctor && $doctor) {
       $todayAppointments = Appointment::with(['patient', 'doctor'])
-        ->where('doctor_ID', $doctor->doctor_id)
+        ->where('doctor_id', $doctor->doctor_id)
         ->whereDate('appt_date', Carbon::today())
         ->orderBy('appt_time')
         ->get();
@@ -137,16 +142,16 @@ new class extends Component {
       // Show if: Doctor ID matches OR Doctor ID is NULL (Pool)
       $incomingRequests = Appointment::with(['patient', 'doctor'])
         ->where(function ($query) use ($doctor) {
-          $query->where('doctor_ID', $doctor->doctor_id)
-            ->orWhereNull('doctor_ID');
+          $query->where('doctor_id', $doctor->doctor_id)
+            ->orWhereNull('doctor_id');
         })
         ->whereIn('appt_status', ['PENDING', 'Pending', 'scheduled', 'Scheduled'])
         ->orderBy('appt_date')
         ->orderBy('appt_time')
         ->get();
 
-      $totalPatients = Appointment::where('doctor_ID', $doctor->doctor_id)
-        ->selectRaw('COUNT(DISTINCT patient_ID) as count')
+      $totalPatients = Appointment::where('doctor_id', $doctor->doctor_id)
+        ->selectRaw('COUNT(DISTINCT patient_id) as count')
         ->value('count') ?? 0;
 
       // Changed to single supervisee
@@ -156,7 +161,7 @@ new class extends Component {
       $recentConsultations = collect();
       if ($supervisee) {
         $recentConsultations = Appointment::with(['doctor', 'patient'])
-          ->where('doctor_ID', $supervisee->doctor_id)
+          ->where('doctor_id', $supervisee->doctor_id)
           ->whereIn('appt_status', ['Completed', 'Consulting', 'completed', 'consulting'])
           ->latest('updated_at')
           ->take(5)
@@ -485,7 +490,7 @@ new class extends Component {
                         </td>
                         @if($isDoctor)
                           <td class="px-3 py-3 whitespace-nowrap text-right">
-                             <flux:button size="xs" href="{{ route('patients.show', ['patient' => $appointment->patient_ID, 'tab' => 'consultation', 'appt_id' => $appointment->appt_ID]) }}" icon="clipboard-document-check" variant="primary">Consult</flux:button>
+                             <flux:button size="xs" href="{{ route('patients.show', ['patient' => $appointment->patient_id, 'tab' => 'consultation', 'appt_id' => $appointment->appt_id]) }}" icon="clipboard-document-check" variant="primary">Consult</flux:button>
                           </td>
                         @endif
                       </tr>

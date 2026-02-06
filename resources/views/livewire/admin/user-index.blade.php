@@ -48,7 +48,7 @@ new class extends Component {
         try {
             // Debug: Log what we're trying to delete
             \Log::info("Attempting to delete user: {$user->email} (ID: {$user->id})");
-            
+
             // Check if user has related records that would cause constraint violations
             $hasRelatedRecords = false;
             $relatedInfo = [];
@@ -68,10 +68,10 @@ new class extends Component {
             }
 
             // Check for appointments (as patient or doctor)
-            $appointmentCount = \App\Models\Appointment::where('patient_ID', $user->id)
-                ->orWhere('doctor_ID', $user->id)
+            $appointmentCount = \App\Models\Appointment::where('patient_id', $user->id)
+                ->orWhere('doctor_id', $user->id)
                 ->count();
-            
+
             if ($appointmentCount > 0) {
                 $hasRelatedRecords = true;
                 $relatedInfo[] = "{$appointmentCount} appointment(s)";
@@ -79,8 +79,8 @@ new class extends Component {
             }
 
             // Check for medical records
-            $medicalRecordCount = \App\Models\MedicalCheckup::whereHas('appointment', function($query) use ($user) {
-                $query->where('patient_ID', $user->id)->orWhere('doctor_ID', $user->id);
+            $medicalRecordCount = \App\Models\MedicalCheckup::whereHas('appointment', function ($query) use ($user) {
+                $query->where('patient_id', $user->id)->orWhere('doctor_id', $user->id);
             })->count();
 
             if ($medicalRecordCount > 0) {
@@ -111,7 +111,7 @@ new class extends Component {
             ]);
 
             session()->flash('success', 'User deleted successfully.');
-            
+
             // Force a complete refresh of the component
             $this->dispatch('$refresh');
         } catch (\Exception $e) {
@@ -212,11 +212,13 @@ new class extends Component {
                         </td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm">
                             @if($user->status === 'active')
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     Active
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <span
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                     Inactive
                                 </span>
                             @endif
@@ -227,9 +229,7 @@ new class extends Component {
                         <td class="relative whitespace-nowrap py-4 pl-3 pr-12 text-right text-sm font-medium">
                             <flux:button variant="ghost" size="sm" icon="pencil-square"
                                 href="{{ route('admin.users.edit', $user) }}" />
-                            <flux:button 
-                                variant="ghost" 
-                                size="sm" 
+                            <flux:button variant="ghost" size="sm"
                                 icon="{{ $user->status === 'active' ? 'x-circle' : 'check-circle' }}"
                                 wire:click="toggleStatus({{ $user->id }})"
                                 wire:confirm="Are you sure you want to {{ $user->status === 'active' ? 'deactivate' : 'activate' }} this user?">

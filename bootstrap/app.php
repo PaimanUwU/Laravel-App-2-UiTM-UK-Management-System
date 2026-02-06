@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'doctor.profile' => \App\Http\Middleware\RequireDoctorProfile::class,
             'maintenance' => \App\Http\Middleware\MaintenanceMode::class,
         ]);
-        
+
         $middleware->web(\App\Http\Middleware\MaintenanceMode::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

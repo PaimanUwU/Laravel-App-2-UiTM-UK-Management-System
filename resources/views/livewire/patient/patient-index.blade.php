@@ -105,8 +105,8 @@ new class extends Component {
                         </td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                             <div class="flex flex-col">
-                                <span class="font-mono text-xs text-gray-900">{{ $patient->ic_number }}</span>
-                                <span class="text-xs text-gray-500">{{ $patient->student_id }}</span>
+                                <span class="font-mono text-xs text-gray-900">{{ $patient->student_id  }}</span>
+                                <span class="text-xs text-gray-500">{{ $patient->ic_number }}</span>
                             </div>
                         </td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">

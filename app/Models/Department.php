@@ -9,7 +9,7 @@ class Department extends Model
 {
   use HasFactory;
 
-  protected $table = 'departments';
+  protected $table = 'DEPARTMENTS';
   protected $primaryKey = 'dept_id';
 
   protected $fillable = [

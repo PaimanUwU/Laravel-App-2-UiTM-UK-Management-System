@@ -37,7 +37,7 @@ class TestSeeder extends Seeder
         $admin->assignRole("system_admin");
 
         // Create Test Users for other roles
-        $roles = ["head_office", "doctor", "staff", "patient"];
+        $roles = ["head_office", "doctor", "patient"];
         foreach ($roles as $role) {
             $user = User::factory()->create([
                 "name" => ucfirst(str_replace("_", " ", $role)) . " User",
@@ -580,6 +580,34 @@ class TestSeeder extends Seeder
             "mc_date_start" => now()->subDays(2),
             "mc_date_end" => now()->subDays(1),
         ]);
+
+        // ==========================================
+        // 6. ENSURE TODAY'S WORKLOAD (1-6 Appts per Doctor)
+        // ==========================================
+        $todayStr = now()->format("Y-m-d");
+        $allPatients = DB::table("patients")->pluck("patient_id")->toArray();
+        $doctorsForWorkload = Doctor::all();
+
+        if (!empty($allPatients) && $doctorsForWorkload->isNotEmpty()) {
+            foreach ($doctorsForWorkload as $doctor) {
+                $apptCount = rand(1, 6);
+                for ($i = 0; $i < $apptCount; $i++) {
+                    Appointment::create([
+                        "appt_date" => $todayStr,
+                        "appt_time" => sprintf(
+                            "%02d:%02d",
+                            rand(8, 16),
+                            rand(0, 59),
+                        ),
+                        "appt_status" => "PENDING",
+                        "appt_payment" => 0.0,
+                        "patient_id" => $allPatients[array_rand($allPatients)],
+                        "doctor_id" => $doctor->doctor_id,
+                    ]);
+                }
+            }
+            echo "✅ Created today's workload (1-6 appointments) for each doctor!\n";
+        }
 
         echo "\n✅ [TestSeeder] Oracle Database Seeded Successfully with Extended Data!\n";
     }

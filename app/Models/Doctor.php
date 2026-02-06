@@ -9,30 +9,30 @@ class Doctor extends Model
 {
   use HasFactory;
 
-  protected $table = 'doctors';
+  protected $table = 'DOCTORS';
   protected $primaryKey = 'doctor_id';
 
   protected $fillable = [
     'user_id',
     'doctor_name',
     'doctor_gender',
-    'doctor_DOB',
-    'doctor_HP',
+    'doctor_dob',
+    'doctor_hp',
     'doctor_email',
-    'position_ID', // Keeping this as is for now unless I confirmed it should be changed, but user specifically mentioned supervisor_id
-    'dept_ID',     // Same here
+    'position_id',
+    'dept_id',
     'supervisor_id',
     'status',
   ];
 
   public function position()
   {
-    return $this->belongsTo(Position::class, 'position_ID', 'position_ID');
+    return $this->belongsTo(Position::class, 'position_id', 'position_id');
   }
 
   public function department()
   {
-    return $this->belongsTo(Department::class, 'dept_ID', 'dept_ID');
+    return $this->belongsTo(Department::class, 'dept_id', 'dept_id');
   }
 
   public function supervisor()
